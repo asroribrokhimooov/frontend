@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Plus, X, Bell, Clock, AlertCircle, CheckCircle, Search,
-  ChevronRight, CalendarDays, User, Inbox,
+  ChevronRight, CalendarDays, Inbox,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Sidebar } from '../../components/layout/Sidebar';

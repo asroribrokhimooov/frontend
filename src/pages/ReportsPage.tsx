@@ -458,7 +458,7 @@ export function ReportsPage() {
       headStyles: { fillColor: [59, 130, 246] },
     });
 
-    const y1 = (doc as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 90;
+    const y1 = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 90;
     doc.setFontSize(13);
     doc.text("To'lov usullari", 14, y1 + 8);
     autoTable(doc, {
@@ -663,8 +663,8 @@ export function ReportsPage() {
                       width={42}
                     />
                     <Tooltip
-                      formatter={(value: number, name: string) => [
-                        formatCurrency(value),
+                      formatter={(value: number | undefined, name: string | undefined) => [
+                        formatCurrency(value ?? 0),
                         name === 'joriy' ? 'Joriy yil' : "O'tgan yil",
                       ]}
                       contentStyle={{

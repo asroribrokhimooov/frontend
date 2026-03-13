@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useTranslation } from 'react-i18next';
 import {
   Plus, Pencil, TrendingUp, TrendingDown, Wallet,
   AlertCircle, ChevronLeft, ChevronRight, FileDown,
@@ -9,7 +8,6 @@ import {
 } from 'lucide-react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
-import { Button } from '../../components/ui/Button';
 import { PaymentFormModal } from './PaymentFormModal';
 import {
   usePayments,
@@ -92,7 +90,6 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function PaymentsPage() {
-  const { t } = useTranslation();
   const [tab, setTab] = useState<TabType>('history');
   const [filter, setFilter] = useState<FilterType>('month');
   const [formOpen, setFormOpen] = useState(false);
@@ -333,7 +330,6 @@ export function PaymentsPage() {
                       key={payment.id}
                       payment={payment}
                       onClick={() => setDetailPayment(payment)}
-                      onEdit={() => openEdit(payment)}
                     />
                   ))}
                 </div>
@@ -680,11 +676,9 @@ export function PaymentsPage() {
 function PaymentCard({
   payment,
   onClick,
-  onEdit,
 }: {
   payment: Payment;
   onClick: () => void;
-  onEdit: () => void;
 }) {
   const date = payment.created_at
     ? new Date(payment.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })

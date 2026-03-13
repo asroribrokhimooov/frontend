@@ -1,16 +1,16 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Send, Users, User, Search, ChevronLeft, ChevronRight,
-  CheckCircle2, X, Clock, Check, AlertCircle, Pencil,
-  MessageSquare, Hash,
+  Send, Users, User, Search, ChevronLeft,
+  CheckCircle2, X, Clock, Check, Pencil,
+  MessageSquare,
 } from 'lucide-react';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Header } from '../components/layout/Header';
 import { useGroups } from '../hooks/useGroups';
 import { useStudents } from '../hooks/useStudents';
 import { useMessages, useMessageTemplates, useSendMessage } from '../hooks/useMessages';
-import type { Message, Student, Group, MessageTemplate } from '../types';
+import type { Message, Group, MessageTemplate } from '../types';
 import { cn } from '../utils/cn';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -729,23 +729,6 @@ function MessageDetailModal({
   const isGroup = !message.receiver && !!message.group_id;
   const colors = getColors(recipientName);
 
-  const rows = [
-    {
-      label: 'Kimga?',
-      value: recipientName,
-      extra: isGroup ? 'guruh' : null,
-    },
-    {
-      label: 'Qachon?',
-      value: formatDateTime(message.created_at),
-      extra: null,
-    },
-    {
-      label: 'Xabar holati',
-      value: 'Muvaffaqiyatli yuborildi',
-      extra: 'success',
-    },
-  ];
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">

@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
-import { DEMO_PAYMENTS, DEMO_DEBTORS } from '../../data/demoPayments';
-import { DEMO_GROUPS } from '../../data/demoGroups';
-import { DEMO_STUDENTS } from '../../data/demoStudents';
+import { usePayments, useDebtors } from '../../hooks/usePayments';
+import { useGroups } from '../../hooks/useGroups';
+import { useStudents } from '../../hooks/useStudents';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -24,8 +24,6 @@ const MONTH_NAMES_UZ = [
   'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
   'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
 ];
-
-const AVAILABLE_MONTHS = ['2026-01', '2026-02', '2026-03'];
 
 const METHOD_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   cash:     { label: 'Naqt',      icon: <Banknote className="w-3.5 h-3.5" />,      color: '#34C759' },
@@ -46,16 +44,36 @@ function formatMonthLabel(monthYear: string): string {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function ReportsPage() {
-  const [selectedMonth, setSelectedMonth] = useState('2026-03');
+  const { data: payments = [] } = usePayments();
+  const { data: groups = [] } = useGroups();
+  const { data: students = [] } = useStudents();
+  const { data: debtors = [] } = useDebtors();
+
+  const availableMonths = useMemo(() => {
+    const months = new Set(payments.map((p) => p.month_year).filter(Boolean));
+    if (months.size === 0) {
+      const now = new Date();
+      return [0, 1, 2].map((offset) => {
+        const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      }).reverse();
+    }
+    return [...months].sort();
+  }, [payments]);
+
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   // Payments for selected month
   const monthPayments = useMemo(() => {
-    return DEMO_PAYMENTS.filter((p) => p.month_year === selectedMonth);
-  }, [selectedMonth]);
+    return payments.filter((p) => p.month_year === selectedMonth);
+  }, [payments, selectedMonth]);
 
   // KPI calculations
   const totalReceived = monthPayments.reduce((s, p) => s + p.amount, 0);
-  const expectedRevenue = DEMO_GROUPS.reduce((s, g) => s + g.monthly_fee * (g.students_count ?? 0), 0);
+  const expectedRevenue = groups.reduce((s, g) => s + g.monthly_fee * (g.students_count ?? 0), 0);
   const remaining = Math.max(0, expectedRevenue - totalReceived);
   const prepaidAmount = monthPayments
     .filter((p) => p.status === 'prepaid')
@@ -66,9 +84,9 @@ export function ReportsPage() {
   const prepaidCount = monthPayments.filter((p) => p.status === 'prepaid').length;
 
   // Monthly bar chart data
-  const barData = AVAILABLE_MONTHS.map((mk) => {
+  const barData = availableMonths.map((mk) => {
     const m = Number(mk.split('-')[1]);
-    const ps = DEMO_PAYMENTS.filter((p) => p.month_year === mk);
+    const ps = payments.filter((p) => p.month_year === mk);
     return {
       name: MONTH_NAMES_UZ[m - 1],
       received: ps.reduce((s, p) => s + p.amount, 0),
@@ -91,7 +109,7 @@ export function ReportsPage() {
     }));
 
   // Group stats
-  const groupStats = DEMO_GROUPS.map((group) => {
+  const groupStats = groups.map((group) => {
     const gPayments = monthPayments.filter((p) => p.group_id === group.id);
     const received  = gPayments.reduce((s, p) => s + p.amount, 0);
     const expected  = group.monthly_fee * (group.students_count ?? 0);
@@ -100,12 +118,12 @@ export function ReportsPage() {
   });
 
   const handlePrev = () => {
-    const idx = AVAILABLE_MONTHS.indexOf(selectedMonth);
-    if (idx > 0) setSelectedMonth(AVAILABLE_MONTHS[idx - 1]);
+    const idx = availableMonths.indexOf(selectedMonth);
+    if (idx > 0) setSelectedMonth(availableMonths[idx - 1]);
   };
   const handleNext = () => {
-    const idx = AVAILABLE_MONTHS.indexOf(selectedMonth);
-    if (idx < AVAILABLE_MONTHS.length - 1) setSelectedMonth(AVAILABLE_MONTHS[idx + 1]);
+    const idx = availableMonths.indexOf(selectedMonth);
+    if (idx < availableMonths.length - 1) setSelectedMonth(availableMonths[idx + 1]);
   };
 
   // Export handlers
@@ -140,7 +158,7 @@ export function ReportsPage() {
     });
 
     // 2. Monthly revenue
-    const y1 = (doc as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 90;
+    const y1 = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 90;
     doc.setFontSize(11);
     doc.text('Oylik daromad dinamikasi', 15, y1 + 8);
     autoTable(doc, {
@@ -153,7 +171,7 @@ export function ReportsPage() {
     });
 
     // 3. Payment methods
-    const y2 = (doc as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 140;
+    const y2 = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 140;
     doc.setFontSize(11);
     doc.text("To'lov usullari", 15, y2 + 8);
     autoTable(doc, {
@@ -169,7 +187,7 @@ export function ReportsPage() {
     });
 
     // 4. Payment status
-    const y3 = (doc as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 180;
+    const y3 = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY ?? 180;
     doc.setFontSize(11);
     doc.text("To'lovlar holati", 15, y3 + 8);
     autoTable(doc, {
@@ -275,7 +293,7 @@ export function ReportsPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-[22px] font-bold text-[#1c1c1e] tracking-tight">Hisobotlar</h1>
-              <p className="text-[13px] text-[#8e8e93] mt-0.5">Demo ma'lumotlar asosida</p>
+              <p className="text-[13px] text-[#8e8e93] mt-0.5">To'lov hisobotlari</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -304,7 +322,7 @@ export function ReportsPage() {
           >
             <button
               onClick={handlePrev}
-              disabled={AVAILABLE_MONTHS.indexOf(selectedMonth) === 0}
+              disabled={availableMonths.indexOf(selectedMonth) === 0}
               className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-[#F5F5F7] transition-colors disabled:opacity-30"
             >
               <ChevronLeft className="w-5 h-5 text-[#8e8e93]" />
@@ -314,7 +332,7 @@ export function ReportsPage() {
             </span>
             <button
               onClick={handleNext}
-              disabled={AVAILABLE_MONTHS.indexOf(selectedMonth) === AVAILABLE_MONTHS.length - 1}
+              disabled={availableMonths.indexOf(selectedMonth) === availableMonths.length - 1}
               className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-[#F5F5F7] transition-colors disabled:opacity-30"
             >
               <ChevronRight className="w-5 h-5 text-[#8e8e93]" />
@@ -418,7 +436,7 @@ export function ReportsPage() {
                       dataKey="value"
                       paddingAngle={3}
                     >
-                      {methodData.map((entry, idx) => (
+                      {methodData.map((_, idx) => (
                         <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                       ))}
                     </Pie>
@@ -545,9 +563,9 @@ export function ReportsPage() {
             <p className="text-[13px] font-semibold text-[#1c1c1e] mb-3">Umumiy ma'lumot</p>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "Jami o'quvchilar", value: DEMO_STUDENTS.length, icon: <Users className="w-4 h-4" />,        color: '#007AFF' },
-                { label: 'Faol guruhlar',    value: DEMO_GROUPS.length,   icon: <GraduationCap className="w-4 h-4" />, color: '#34C759' },
-                { label: 'Qarzdorlar',       value: DEMO_DEBTORS.length,  icon: <AlertCircle className="w-4 h-4" />,   color: '#FF3B30' },
+                { label: "Jami o'quvchilar", value: students.length, icon: <Users className="w-4 h-4" />,        color: '#007AFF' },
+                { label: 'Faol guruhlar',    value: groups.length,   icon: <GraduationCap className="w-4 h-4" />, color: '#34C759' },
+                { label: 'Qarzdorlar',       value: debtors.length,  icon: <AlertCircle className="w-4 h-4" />,   color: '#FF3B30' },
               ].map((item, i) => (
                 <div
                   key={i}
