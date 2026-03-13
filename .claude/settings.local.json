@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install jspdf-autotable @types/jspdf-autotable)",
+      "Bash(npm install jspdf-autotable)",
+      "Bash(npm run build)",
+      "Bash(\"c:\\\\Users\\\\User\\\\Videos\\\\teachflow-frontend\\\\src\\\\pages\\\\students\\\\StudentProfilePage.tsx\")",
+      "Bash(xargs grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(ls -la /c/Users/User/Videos/teachflow-frontend/*.json)",
+      "Bash(xargs ls:*)"
+    ]
+  }
+}
