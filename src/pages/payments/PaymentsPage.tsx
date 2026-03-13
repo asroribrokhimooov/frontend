@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   Plus, Pencil, TrendingUp, TrendingDown, Wallet,
   AlertCircle, ChevronLeft, ChevronRight, FileDown,
-  Banknote, ArrowLeftRight, Smartphone, Building2, MoreHorizontal,
+  Banknote, Smartphone, Building2, MoreHorizontal,
   X, Clock, Calendar, Hash, Users,
 } from 'lucide-react';
 import { Sidebar } from '../../components/layout/Sidebar';
@@ -28,10 +28,8 @@ type FilterType = 'today' | 'week' | 'month';
 
 const METHOD_META: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
   cash:     { label: 'Naqt',     icon: <Banknote className="w-3.5 h-3.5" />,     color: '#34C759', bg: 'rgba(52,199,89,0.1)' },
-  transfer: { label: "O'tkazma", icon: <ArrowLeftRight className="w-3.5 h-3.5" />, color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)' },
   click:    { label: 'Click',    icon: <Smartphone className="w-3.5 h-3.5" />,   color: '#FF9500', bg: 'rgba(255,149,0,0.1)' },
   payme:    { label: 'Payme',    icon: <Building2 className="w-3.5 h-3.5" />,    color: '#007AFF', bg: 'rgba(0,122,255,0.1)' },
-  card:     { label: 'Karta',    icon: <Wallet className="w-3.5 h-3.5" />,       color: '#5AC8FA', bg: 'rgba(90,200,250,0.1)' },
   other:    { label: 'Boshqa',   icon: <MoreHorizontal className="w-3.5 h-3.5" />, color: '#8E8E93', bg: 'rgba(142,142,147,0.1)' },
 };
 

@@ -13,6 +13,7 @@ import { writeFile, utils } from 'xlsx';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
 import { useGroup, useUpdateGroup, useArchiveGroup } from '../../hooks/useGroups';
+import { useCreateAttendanceBulk } from '../../hooks/useAttendance';
 import { useStudents } from '../../hooks/useStudents';
 import { ManageStudentsModal } from './ManageStudentsModal';
 import { GroupQuickPaymentModal } from './GroupQuickPaymentModal';
@@ -20,9 +21,6 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { cn } from '../../utils/cn';
 import { api } from '../../api/axios';
 import type { Student, AttendanceStatus, Group } from '../../types';
-import { getDemoGroupStudents } from '../../data/demoGroups';
-import { DEMO_STUDENTS } from '../../data/demoStudents';
-
 type TabType = 'students' | 'payments' | 'attendance' | 'settings';
 
 interface DebtorItem {
@@ -36,8 +34,6 @@ const DAY_SHORT: Record<string, string> = {
   monday: 'Du', tuesday: 'Se', wednesday: 'Ch',
   thursday: 'Pa', friday: 'Ju', saturday: 'Sha', sunday: 'Yak',
 };
-
-const DEMO_DEBT_AMOUNTS = [-150000, -280000, -450000, -320000, -180000, -520000, -95000, -340000];
 
 function getAvatarColor(name: string): string {
   const colors = [
@@ -188,7 +184,6 @@ export function GroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const isDemoGroup = id?.startsWith('demo-group-') ?? false;
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [manageStudentsOpen, setManageStudentsOpen] = useState(false);
@@ -196,9 +191,6 @@ export function GroupDetailPage() {
   const [debtorsModalOpen, setDebtorsModalOpen] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
-
-  // Demo group local students override
-  const [localStudentIds, setLocalStudentIds] = useState<string[] | null>(null);
 
   // Settings form state
   const [settingsName, setSettingsName] = useState('');
@@ -222,9 +214,10 @@ export function GroupDetailPage() {
   const { data: allStudents = [] } = useStudents();
   const updateGroup = useUpdateGroup(id);
   const archiveGroup = useArchiveGroup(id);
+  const createAttendanceBulk = useCreateAttendanceBulk();
 
   // Students in group
-  const { data: apiGroupStudents = [], isLoading: studentsLoading } = useQuery({
+  const { data: groupStudents = [], isLoading: studentsLoading } = useQuery({
     queryKey: ['students', 'group', id],
     queryFn: async (): Promise<Student[]> => {
       const res = await api.get<Student[] | { data: Student[] }>('/students', {
@@ -233,36 +226,10 @@ export function GroupDetailPage() {
       const raw = res.data;
       return Array.isArray(raw) ? raw : (raw as { data: Student[] }).data ?? [];
     },
-    enabled: !!id && !isDemoGroup,
+    enabled: !!id,
   });
 
-  const demoGroupStudentsBase = isDemoGroup && id ? getDemoGroupStudents(id) : [];
-
-  const groupStudents: Student[] = useMemo(() => {
-    if (isDemoGroup) {
-      if (localStudentIds !== null) {
-        return localStudentIds
-          .map((sid) => DEMO_STUDENTS.find((s) => s.id === sid))
-          .filter(Boolean) as Student[];
-      }
-      return demoGroupStudentsBase;
-    }
-    return apiGroupStudents;
-  }, [isDemoGroup, localStudentIds, demoGroupStudentsBase, apiGroupStudents]);
-
-  const debtorsCount = isDemoGroup
-    ? (group?.debtors ?? 0)
-    : groupStudents.filter((s) => Number(s.balance) < 0).length;
-
   const debtorsList: DebtorItem[] = useMemo(() => {
-    if (isDemoGroup) {
-      return groupStudents.slice(0, debtorsCount).map((s, i) => ({
-        id: s.id,
-        name: `${s.first_name} ${s.last_name}`,
-        phone: s.phone,
-        debt: DEMO_DEBT_AMOUNTS[i % DEMO_DEBT_AMOUNTS.length],
-      }));
-    }
     return groupStudents
       .filter((s) => Number(s.balance) < 0)
       .map((s) => ({
@@ -271,7 +238,9 @@ export function GroupDetailPage() {
         phone: s.phone,
         debt: Number(s.balance),
       }));
-  }, [isDemoGroup, debtorsCount, groupStudents]);
+  }, [groupStudents]);
+
+  const debtorsCount = debtorsList.length;
 
   // Initialize settings form when group loads
   useEffect(() => {
@@ -282,35 +251,19 @@ export function GroupDetailPage() {
     }
   }, [group?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleAddStudents = (ids: string[]) => {
-    if (isDemoGroup) {
-      const currentIds = groupStudents.map((s) => s.id);
-      setLocalStudentIds([...new Set([...currentIds, ...ids])]);
-    } else {
-      queryClient.invalidateQueries({ queryKey: ['students', 'group', id] });
-    }
+  const handleAddStudents = () => {
+    queryClient.invalidateQueries({ queryKey: ['students', 'group', id] });
     setManageStudentsOpen(false);
   };
 
-  const handleRemoveStudents = (ids: string[]) => {
-    if (isDemoGroup) {
-      const removeSet = new Set(ids);
-      const currentIds = groupStudents.map((s) => s.id);
-      setLocalStudentIds(currentIds.filter((sid) => !removeSet.has(sid)));
-    } else {
-      queryClient.invalidateQueries({ queryKey: ['students', 'group', id] });
-    }
+  const handleRemoveStudents = () => {
+    queryClient.invalidateQueries({ queryKey: ['students', 'group', id] });
     setManageStudentsOpen(false);
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     if (!group) return;
-    if (isDemoGroup) {
-      setSettingsSaved(true);
-      setTimeout(() => setSettingsSaved(false), 2000);
-      return;
-    }
     updateGroup.mutate(
       { name: settingsName, monthly_fee: Number(settingsFee), lesson_time: settingsTime, lesson_days: group.lesson_days, color: group.color ?? '#3B82F6' },
       { onSuccess: () => { setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); } }
@@ -318,7 +271,6 @@ export function GroupDetailPage() {
   };
 
   const handleArchive = () => {
-    if (isDemoGroup) { setArchiveConfirmOpen(false); navigate('/groups'); return; }
     archiveGroup.mutate(undefined, { onSuccess: () => navigate('/groups') });
   };
 
@@ -357,8 +309,31 @@ export function GroupDetailPage() {
   };
 
   const handleSaveAttendance = () => {
-    setAttendanceSaved(true);
-    setTimeout(() => setAttendanceSaved(false), 2000);
+    if (!id) {
+      setAttendanceSaved(true);
+      setTimeout(() => setAttendanceSaved(false), 2000);
+      return;
+    }
+    const dateStr = attendanceDate.toISOString().split('T')[0];
+    const records = groupStudents.map((student) => ({
+      group_id: id,
+      student_id: student.id,
+      date: dateStr,
+      status: attendanceMap[student.id] ?? 'absent',
+    }));
+    createAttendanceBulk.mutate(
+      { records },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['attendance', id] });
+          setAttendanceSaved(true);
+          setTimeout(() => setAttendanceSaved(false), 2000);
+        },
+        onError: () => {
+          alert('Davomatni saqlashda xatolik yuz berdi. Qayta urinib ko\'ring.');
+        },
+      }
+    );
   };
 
   if (groupLoading || !id) {
@@ -810,7 +785,7 @@ export function GroupDetailPage() {
         open={manageStudentsOpen}
         onClose={() => setManageStudentsOpen(false)}
         groupStudents={groupStudents}
-        allStudents={isDemoGroup ? DEMO_STUDENTS : allStudents}
+        allStudents={allStudents}
         onAddStudents={handleAddStudents}
         onRemoveStudents={handleRemoveStudents}
       />

@@ -2,13 +2,12 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Search, X, Check, CheckCircle2, AlertTriangle, Zap,
-  Banknote, ArrowLeftRight, Smartphone, Building2, MoreHorizontal,
+  Banknote, Smartphone, Building2, MoreHorizontal,
   Calendar,
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { useStudents } from '../../hooks/useStudents';
 import { useGroups } from '../../hooks/useGroups';
-import { DEMO_GROUP_STUDENT_IDS } from '../../data/demoGroups';
 import { formatCurrency } from '../../utils/formatCurrency';
 import type {
   Payment, PaymentCreatePayload, PaymentUpdatePayload,
@@ -34,7 +33,6 @@ const MONTH_NAMES = [
 
 const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string; icon: React.ReactNode }> = [
   { value: 'cash',     label: 'Naqt',     icon: <Banknote className="w-3.5 h-3.5" /> },
-  { value: 'transfer', label: "O'tkazma", icon: <ArrowLeftRight className="w-3.5 h-3.5" /> },
   { value: 'click',    label: 'Click',    icon: <Smartphone className="w-3.5 h-3.5" /> },
   { value: 'payme',    label: 'Payme',    icon: <Building2 className="w-3.5 h-3.5" /> },
   { value: 'other',    label: 'Boshqa',   icon: <MoreHorizontal className="w-3.5 h-3.5" /> },
@@ -237,9 +235,6 @@ export function PaymentFormModal({
     if (!studentId) return [];
     if (selectedStudent?.groups && selectedStudent.groups.length > 0) {
       return selectedStudent.groups.filter((g) => !g.is_archived);
-    }
-    if (studentId.startsWith('demo-')) {
-      return activeGroups.filter((g) => DEMO_GROUP_STUDENT_IDS[g.id]?.includes(studentId));
     }
     return activeGroups;
   }, [studentId, selectedStudent, activeGroups]);

@@ -41,59 +41,6 @@ const TYPE_META: Record<string, {
   },
 };
 
-// ── Demo data (shown when API returns empty) ──────────────────────────────────
-
-const DEMO_ARCHIVES: ArchiveItem[] = [
-  {
-    id: 'arch-1',
-    entity_type: 'student',
-    entity_id: 'demo-arch-s1',
-    data: { first_name: 'Jasur', last_name: 'Toshmatov', phone: '+998901234567' },
-    archived_at: '2026-02-15T10:30:00Z',
-    archived_by: 'admin',
-  },
-  {
-    id: 'arch-2',
-    entity_type: 'group',
-    entity_id: 'demo-arch-g1',
-    data: { name: "Python Boshlang'ich", monthly_fee: 450000, students_count: 12 },
-    archived_at: '2026-02-10T08:00:00Z',
-    archived_by: 'admin',
-  },
-  {
-    id: 'arch-3',
-    entity_type: 'student',
-    entity_id: 'demo-arch-s2',
-    data: { first_name: 'Nilufar', last_name: 'Karimova', phone: '+998901112233' },
-    archived_at: '2026-01-28T14:00:00Z',
-    archived_by: 'admin',
-  },
-  {
-    id: 'arch-4',
-    entity_type: 'payment',
-    entity_id: 'demo-arch-p1',
-    data: { amount: 350000, payment_method: 'cash', month_year: '2025-12' },
-    archived_at: '2026-01-20T11:15:00Z',
-    archived_by: 'admin',
-  },
-  {
-    id: 'arch-5',
-    entity_type: 'group',
-    entity_id: 'demo-arch-g2',
-    data: { name: 'English B2-C1', monthly_fee: 550000, students_count: 8 },
-    archived_at: '2026-01-05T09:30:00Z',
-    archived_by: 'admin',
-  },
-  {
-    id: 'arch-6',
-    entity_type: 'student',
-    entity_id: 'demo-arch-s3',
-    data: { first_name: 'Sherzod', last_name: 'Yusupov', phone: '+998907654321' },
-    archived_at: '2025-12-22T16:45:00Z',
-    archived_by: 'admin',
-  },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getItemName(item: ArchiveItem): string {
@@ -145,7 +92,7 @@ export function ArchivePage() {
   const { data: rawArchives = [], isLoading } = useArchive();
   const restoreMutation = useRestoreArchive();
 
-  const archives = rawArchives.length > 0 ? rawArchives : DEMO_ARCHIVES;
+  const archives = rawArchives;
 
   const filtered = useMemo(() => {
     let list = filter === 'all' ? archives : archives.filter((a) => a.entity_type === filter);

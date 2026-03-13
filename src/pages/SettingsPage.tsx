@@ -310,6 +310,7 @@ function ProfileEditModal({
 }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
   const { mutateAsync: updateProfile, isPending } = useUpdateProfile();
   const setUser = useAuthStore(s => s.setUser);
 
@@ -317,12 +318,13 @@ function ProfileEditModal({
     if (open && profile) {
       setFirstName(profile.first_name || '');
       setLastName(profile.last_name || '');
+      setPhone(profile.phone || '');
     }
   }, [open, profile]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    const updated = await updateProfile({ first_name: firstName, last_name: lastName });
+    const updated = await updateProfile({ first_name: firstName, last_name: lastName, phone: phone.trim() || null });
     setUser(updated);
     onClose();
   }
@@ -344,6 +346,13 @@ function ProfileEditModal({
             required
           />
         </div>
+
+        <Input
+          label="Telefon raqam"
+          placeholder="+998 90 123 45 67"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+        />
 
         {/* Read-only fields */}
         {profile?.email && (

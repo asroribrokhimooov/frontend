@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
 import type { Group, GroupPayload } from '../types';
-import { DEMO_GROUPS } from '../data/demoGroups';
 
 const QUERY_KEY_GROUPS = ['groups'] as const;
 
@@ -13,9 +12,9 @@ export function useGroups() {
         const res = await api.get<Group[] | { data: Group[] }>('/groups');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw as { data: Group[] }).data ?? [];
-        return list.length > 0 ? list : DEMO_GROUPS;
+        return list;
       } catch {
-        return DEMO_GROUPS;
+        return [];
       }
     },
     staleTime: 30_000,
@@ -28,9 +27,6 @@ export function useGroup(id: string | undefined | null) {
     queryKey: [...QUERY_KEY_GROUPS, id],
     queryFn: async (): Promise<Group | null> => {
       if (!id) return null;
-      if (id.startsWith('demo-group-')) {
-        return DEMO_GROUPS.find((g) => g.id === id) ?? null;
-      }
       try {
         const res = await api.get<Group>(`/groups/${id}`);
         return res.data ?? null;

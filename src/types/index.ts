@@ -103,7 +103,7 @@ export interface AttendanceBulkPayload {
   records: AttendanceRecord[];
 }
 
-export type PaymentMethod = 'cash' | 'card' | 'click' | 'transfer' | 'payme' | 'other';
+export type PaymentMethod = 'cash' | 'click' | 'payme' | 'other';
 export type PaymentStatus = 'paid' | 'partial' | 'promised' | 'prepaid';
 
 export interface Payment {
@@ -249,6 +249,7 @@ export interface RemindersSummaryResponse extends RemindersSummary {}
 export interface ProfileUpdatePayload {
   first_name?: string;
   last_name?: string;
+  phone?: string | null;
 }
 
 export interface AppLockPayload {

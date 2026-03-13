@@ -6,7 +6,7 @@ import {
 import {
   TrendingUp, TrendingDown, Wallet, Users, GraduationCap,
   FileDown, AlertCircle, ChevronLeft, ChevronRight, Banknote,
-  ArrowLeftRight, Smartphone, Building2, MoreHorizontal,
+  Smartphone, Building2, MoreHorizontal,
 } from 'lucide-react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
@@ -27,10 +27,8 @@ const MONTH_NAMES_UZ = [
 
 const METHOD_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   cash:     { label: 'Naqt',      icon: <Banknote className="w-3.5 h-3.5" />,      color: '#34C759' },
-  transfer: { label: "O'tkazma",  icon: <ArrowLeftRight className="w-3.5 h-3.5" />, color: '#8B5CF6' },
   click:    { label: 'Click',     icon: <Smartphone className="w-3.5 h-3.5" />,    color: '#FF9500' },
   payme:    { label: 'Payme',     icon: <Building2 className="w-3.5 h-3.5" />,     color: '#007AFF' },
-  card:     { label: 'Karta',     icon: <Wallet className="w-3.5 h-3.5" />,        color: '#5AC8FA' },
   other:    { label: 'Boshqa',    icon: <MoreHorizontal className="w-3.5 h-3.5" />, color: '#8E8E93' },
 };
 
@@ -49,17 +47,34 @@ export function ReportsPage() {
   const { data: students = [] } = useStudents();
   const { data: debtors = [] } = useDebtors();
 
+  const [period, setPeriod] = useState('1');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+
   const availableMonths = useMemo(() => {
-    const months = new Set(payments.map((p) => p.month_year).filter(Boolean));
-    if (months.size === 0) {
-      const now = new Date();
-      return [0, 1, 2].map((offset) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      }).reverse();
+    const now = new Date();
+    let count = 1;
+    if (period === '6') count = 6;
+    else if (period === '12') count = 12;
+    else if (period === 'custom' && customStart && customEnd) {
+      // Generate months between custom range
+      const months: string[] = [];
+      const [sy, sm] = customStart.split('-').map(Number);
+      const [ey, em] = customEnd.split('-').map(Number);
+      let d = new Date(sy, sm - 1, 1);
+      const end = new Date(ey, em - 1, 1);
+      while (d <= end) {
+        months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        d.setMonth(d.getMonth() + 1);
+      }
+      return months.length > 0 ? months : [`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`];
     }
-    return [...months].sort();
-  }, [payments]);
+
+    return Array.from({ length: count }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }).reverse();
+  }, [period, customStart, customEnd]);
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -314,6 +329,67 @@ export function ReportsPage() {
               </button>
             </div>
           </div>
+
+          {/* Period selector */}
+          <div
+            className="flex gap-2 flex-wrap"
+          >
+            {[
+              { key: '1', label: '1 oy' },
+              { key: '6', label: '6 oy' },
+              { key: '12', label: '12 oy' },
+              { key: 'custom', label: 'Custom' },
+            ].map((p) => (
+              <button
+                key={p.key}
+                onClick={() => {
+                  setPeriod(p.key);
+                  if (p.key !== 'custom') {
+                    setCustomStart('');
+                    setCustomEnd('');
+                  }
+                }}
+                className="px-4 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200"
+                style={{
+                  background: period === p.key ? '#1c1c1e' : '#fff',
+                  color: period === p.key ? '#fff' : '#8e8e93',
+                  boxShadow: period === p.key
+                    ? '0 4px 12px rgba(0,0,0,0.18)'
+                    : '0 1px 3px rgba(0,0,0,0.06)',
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {period === 'custom' && (
+            <div
+              className="flex gap-3 items-center px-4 py-3 bg-white rounded-2xl"
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)' }}
+            >
+              <div className="flex-1">
+                <label className="text-[11px] font-semibold text-[#8e8e93] uppercase tracking-wider block mb-1">Boshlanish</label>
+                <input
+                  type="month"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-[13px] text-[#1c1c1e] outline-none"
+                  style={{ background: '#F5F5F7' }}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-[11px] font-semibold text-[#8e8e93] uppercase tracking-wider block mb-1">Tugash</label>
+                <input
+                  type="month"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-[13px] text-[#1c1c1e] outline-none"
+                  style={{ background: '#F5F5F7' }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* ── Month navigator ───────────────────────────────────────────── */}
           <div

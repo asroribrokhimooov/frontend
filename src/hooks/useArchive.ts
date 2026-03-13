@@ -18,6 +18,9 @@ export function useRestoreArchive() {
     mutationFn: (payload: ArchiveRestorePayload) => archiveAPI.restoreArchive(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_ARCHIVE });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }

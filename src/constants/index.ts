@@ -12,9 +12,9 @@ export const LESSON_DAYS = [
 
 export const PAYMENT_METHODS = [
   { value: 'cash' as const, labelKey: 'payments.cash' },
-  { value: 'card' as const, labelKey: 'payments.card' },
   { value: 'click' as const, labelKey: 'payments.click' },
-  { value: 'transfer' as const, labelKey: 'payments.transfer' },
+  { value: 'payme' as const, labelKey: 'payments.payme' },
+  { value: 'other' as const, labelKey: 'payments.other' },
 ] as const;
 
 export const PAYMENT_STATUSES = [

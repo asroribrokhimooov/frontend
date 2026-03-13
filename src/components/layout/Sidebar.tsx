@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, GraduationCap, Users, Wallet,
   Bell, MessageSquare, BarChart3, Settings, LogOut, ChevronDown,
-  Mail, Phone, Pencil,
+  Mail, Phone, Pencil, Archive,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useAuthStore } from '../../store/authStore';
@@ -33,6 +33,7 @@ const NAV_AFTER = [
   { path: '/reminders', key: 'reminders', icon: Bell          },
   { path: '/messages',  key: 'messages',  icon: MessageSquare },
   { path: '/reports',   key: 'reports',   icon: BarChart3     },
+  { path: '/archive',   key: 'archive',   icon: Archive       },
   { path: '/settings',  key: 'settings',  icon: Settings      },
 ] as const;
 

@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
 import type { Student, StudentCreatePayload, StudentPatchPayload } from '../types';
-import { DEMO_STUDENTS } from '../data/demoStudents';
 
 const QUERY_KEY_STUDENTS = ['students'] as const;
 
@@ -13,10 +12,9 @@ export function useStudents() {
         const res = await api.get<Student[] | { data: Student[] }>('/students');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw as { data: Student[] }).data ?? [];
-        // API bo'sh qaytsa yoki server mavjud bo'lmasa demo data ishlatiladi
-        return list.length > 0 ? list : DEMO_STUDENTS;
+        return list;
       } catch {
-        return DEMO_STUDENTS;
+        return [];
       }
     },
     staleTime: 30_000,
@@ -29,10 +27,6 @@ export function useStudent(id: string | undefined | null) {
     queryKey: [...QUERY_KEY_STUDENTS, id],
     queryFn: async (): Promise<Student | null> => {
       if (!id) return null;
-      // Demo studentlar uchun real API ga murojaat qilmasdan demo data qaytaradi
-      if (id.startsWith('demo-')) {
-        return DEMO_STUDENTS.find((s) => s.id === id) ?? null;
-      }
       try {
         const res = await api.get<Student | { data: Student }>(`/students/${id}`);
         const raw = res.data;

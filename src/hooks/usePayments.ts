@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
 import * as paymentsAPI from '../api/payments';
 import type { Payment, PaymentCreatePayload, PaymentUpdatePayload, Debtor, PaymentReport } from '../types';
-import { DEMO_PAYMENTS, DEMO_DEBTORS } from '../data/demoPayments';
 
 const QUERY_KEY_PAYMENTS = ['payments'] as const;
 const QUERY_KEY_DEBTORS = ['payments', 'debtors'] as const;
@@ -16,9 +15,9 @@ export function usePayments() {
         const res = await api.get<Payment[] | { data: Payment[] }>('/payments');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw as { data: Payment[] }).data ?? [];
-        return list.length > 0 ? list : DEMO_PAYMENTS;
+        return list;
       } catch {
-        return DEMO_PAYMENTS;
+        return [];
       }
     },
     staleTime: 30_000,
@@ -34,9 +33,9 @@ export function useDebtors() {
         const res = await api.get<Debtor[] | { data: Debtor[] }>('/payments/debtors');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw as { data: Debtor[] }).data ?? [];
-        return list.length > 0 ? list : DEMO_DEBTORS;
+        return list;
       } catch {
-        return DEMO_DEBTORS;
+        return [];
       }
     },
     staleTime: 30_000,
@@ -55,20 +54,13 @@ export function usePaymentReports(monthYear: string) {
         const raw = res.data;
         return (raw as unknown as { data: PaymentReport }).data ?? raw;
       } catch {
-        // Build demo report from demo payments
-        const monthPayments = DEMO_PAYMENTS.filter((p) => p.month_year === monthYear);
-        const totalReceived = monthPayments.reduce((sum, p) => sum + p.amount, 0);
-        const methods: Partial<Record<string, number>> = {};
-        monthPayments.forEach((p) => {
-          methods[p.payment_method] = (methods[p.payment_method] ?? 0) + p.amount;
-        });
         return {
           month_year: monthYear,
-          expected_revenue: 8_500_000,
-          total_received: totalReceived || 4_250_000,
-          remaining_balance: 8_500_000 - (totalReceived || 4_250_000),
-          prepaid_amount: 500000,
-          payment_methods: methods,
+          expected_revenue: 0,
+          total_received: 0,
+          remaining_balance: 0,
+          prepaid_amount: 0,
+          payment_methods: {},
         } as PaymentReport;
       }
     },
@@ -86,6 +78,11 @@ export function useCreatePayment() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_PAYMENTS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_DEBTORS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_REPORTS });
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-debtors'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-recent'] });
     },
   });
 }
@@ -102,6 +99,11 @@ export function useUpdatePayment(id: string | undefined) {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_PAYMENTS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_DEBTORS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_REPORTS });
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-debtors'] });
+      queryClient.invalidateQueries({ queryKey: ['payments-recent'] });
     },
   });
 }

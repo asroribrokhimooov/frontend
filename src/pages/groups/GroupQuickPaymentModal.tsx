@@ -22,10 +22,10 @@ function getAvatarColor(name: string): string {
 }
 
 const METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: 'cash', label: 'Naqd' },
-  { value: 'card', label: 'Karta' },
+  { value: 'cash', label: 'Naqt' },
   { value: 'click', label: 'Click' },
-  { value: 'transfer', label: "O'tkazma" },
+  { value: 'payme', label: 'Payme' },
+  { value: 'other', label: 'Boshqa' },
 ];
 
 function autoComputeStatus(paid: number, required: number): PaymentStatus {
