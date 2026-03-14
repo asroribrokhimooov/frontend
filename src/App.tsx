@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { LoginPage } from './pages/auth/LoginPage';
 import { AuthCallbackPage } from './pages/auth/AuthCallbackPage';
 import { OnboardingPage } from './pages/auth/OnboardingPage';
@@ -31,7 +32,9 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPage />
+                <ErrorBoundary>
+                  <DashboardPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -39,7 +42,9 @@ function App() {
             path="/groups"
             element={
               <ProtectedRoute>
-                <GroupsPage />
+                <ErrorBoundary>
+                  <GroupsPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -47,7 +52,9 @@ function App() {
             path="/groups/:id"
             element={
               <ProtectedRoute>
-                <GroupDetailPage />
+                <ErrorBoundary>
+                  <GroupDetailPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -55,7 +62,9 @@ function App() {
             path="/students"
             element={
               <ProtectedRoute>
-                <StudentsPage />
+                <ErrorBoundary>
+                  <StudentsPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -63,7 +72,9 @@ function App() {
             path="/students/:id"
             element={
               <ProtectedRoute>
-                <StudentDetailPage />
+                <ErrorBoundary>
+                  <StudentDetailPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -71,7 +82,9 @@ function App() {
             path="/student-profile/:id"
             element={
               <ProtectedRoute>
-                <StudentProfilePage />
+                <ErrorBoundary>
+                  <StudentProfilePage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -79,7 +92,9 @@ function App() {
             path="/payments"
             element={
               <ProtectedRoute>
-                <PaymentsPage />
+                <ErrorBoundary>
+                  <PaymentsPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -87,7 +102,9 @@ function App() {
             path="/reminders"
             element={
               <ProtectedRoute>
-                <RemindersPage />
+                <ErrorBoundary>
+                  <RemindersPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -95,7 +112,9 @@ function App() {
             path="/messages"
             element={
               <ProtectedRoute>
-                <MessagesPage />
+                <ErrorBoundary>
+                  <MessagesPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -103,7 +122,9 @@ function App() {
             path="/reports"
             element={
               <ProtectedRoute>
-                <ReportsPage />
+                <ErrorBoundary>
+                  <ReportsPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -111,7 +132,9 @@ function App() {
             path="/archive"
             element={
               <ProtectedRoute>
-                <ArchivePage />
+                <ErrorBoundary>
+                  <ArchivePage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -119,7 +142,9 @@ function App() {
             path="/settings"
             element={
               <ProtectedRoute>
-                <SettingsPage />
+                <ErrorBoundary>
+                  <SettingsPage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
@@ -127,7 +152,9 @@ function App() {
             path="/attendance"
             element={
               <ProtectedRoute>
-                <AttendancePage />
+                <ErrorBoundary>
+                  <AttendancePage />
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
