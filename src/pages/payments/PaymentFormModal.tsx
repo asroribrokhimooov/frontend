@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import {
   Search, X, Check, CheckCircle2, AlertTriangle, Zap,
@@ -245,7 +246,7 @@ export function PaymentFormModal({
   );
 
   const requiredAmount = selectedGroup?.monthly_fee ?? 0;
-  const paidAmount = parseFloat(amount) || 0;
+  const paidAmount = parseInt(amount, 10) || 0;
 
   const breakdown = useMemo(() => {
     if (!requiredAmount || paidAmount <= 0) return null;
@@ -388,6 +389,9 @@ export function PaymentFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!studentId) { toast.error("O'quvchi tanlansin"); return; }
+    if (!groupId) { toast.error('Guruh tanlansin'); return; }
+    if (!paidAmount || paidAmount <= 0) { toast.error('Summa kiritilsin'); return; }
     if (!canSubmit) return;
 
     if (isEdit) {
@@ -614,12 +618,13 @@ export function PaymentFormModal({
                 style={{ background: '#F5F5F7' }}
               >
                 <input
-                  type="number"
-                  min="0"
-                  step="1000"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="0"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="flex-1 bg-transparent px-5 py-4 text-[28px] font-bold text-[#1c1c1e] placeholder-[#c7c7cc] outline-none tabular-nums text-right"
                   style={{ minWidth: 0 }}
                   autoFocus={!isEdit}

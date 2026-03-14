@@ -106,11 +106,12 @@ function StudentPaymentForm({ student, group, onBack, onSuccess }: PaymentFormPr
       <div>
         <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Summa *</label>
         <input
-          type="number"
-          min="0"
-          step="1000"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
+          onWheel={(e) => e.currentTarget.blur()}
           placeholder={String(group.monthly_fee)}
           className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-semibold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
         />

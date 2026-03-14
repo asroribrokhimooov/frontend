@@ -36,6 +36,7 @@ const STATUS_META: Record<ReminderStatus, { label: string; color: string; bg: st
 const TYPE_META: Record<ReminderType, { label: string; icon: React.ReactNode }> = {
   promised_payment: { label: "Va'da qilingan to'lov", icon: <Clock className="w-3.5 h-3.5" /> },
   debt_due:         { label: 'Qarz muddati',          icon: <AlertCircle className="w-3.5 h-3.5" /> },
+  lesson:           { label: 'Dars eslatmasi',         icon: <Clock className="w-3.5 h-3.5" /> },
 };
 
 function formatDueDate(dateStr: string): string {

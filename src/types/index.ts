@@ -157,7 +157,7 @@ export interface PaymentReport {
   payment_methods: Partial<Record<PaymentMethod, number>>;
 }
 
-export type ReminderType = 'promised_payment' | 'debt_due';
+export type ReminderType = 'promised_payment' | 'debt_due' | 'lesson';
 
 export interface Reminder {
   id: string;

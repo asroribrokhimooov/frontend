@@ -4,15 +4,14 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import {
-  TrendingUp, TrendingDown, Wallet, Users, GraduationCap,
+  TrendingUp, TrendingDown, Wallet,
   FileDown, AlertCircle, ChevronLeft, ChevronRight, Banknote,
   Smartphone, Building2, MoreHorizontal,
 } from 'lucide-react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
-import { usePayments, useDebtors } from '../../hooks/usePayments';
+import { usePayments } from '../../hooks/usePayments';
 import { useGroups } from '../../hooks/useGroups';
-import { useStudents } from '../../hooks/useStudents';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -44,8 +43,6 @@ function formatMonthLabel(monthYear: string): string {
 export function ReportsPage() {
   const { data: payments = [] } = usePayments();
   const { data: groups = [] } = useGroups();
-  const { data: students = [] } = useStudents();
-  const { data: debtors = [] } = useDebtors();
 
   const [period, setPeriod] = useState('1');
   const [customStart, setCustomStart] = useState('');
@@ -629,31 +626,6 @@ export function ReportsPage() {
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* ── Summary stats ─────────────────────────────────────────────── */}
-          <div
-            className="px-4 py-4 bg-white rounded-2xl"
-            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.05)' }}
-          >
-            <p className="text-[13px] font-semibold text-[#1c1c1e] mb-3">Umumiy ma'lumot</p>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: "Jami o'quvchilar", value: students.length, icon: <Users className="w-4 h-4" />,        color: '#007AFF' },
-                { label: 'Faol guruhlar',    value: groups.length,   icon: <GraduationCap className="w-4 h-4" />, color: '#34C759' },
-                { label: 'Qarzdorlar',       value: debtors.length,  icon: <AlertCircle className="w-4 h-4" />,   color: '#FF3B30' },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center py-3 rounded-xl"
-                  style={{ background: '#F5F5F7' }}
-                >
-                  <div style={{ color: item.color }} className="mb-1">{item.icon}</div>
-                  <p className="text-[20px] font-bold" style={{ color: '#1c1c1e' }}>{item.value}</p>
-                  <p className="text-[10px] text-[#8e8e93] text-center leading-tight mt-0.5">{item.label}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
         </div>
