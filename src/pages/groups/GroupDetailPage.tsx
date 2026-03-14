@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import {
   ArrowLeft, Users, AlertCircle, TrendingUp, CalendarDays, Clock,
@@ -179,6 +180,136 @@ function DebtorsModal({ open, onClose, group, debtors }: DebtorsModalProps) {
   );
 }
 
+// ---- Attendance History Tab ----
+const ATT_CELL: Record<string, { label: string; cls: string }> = {
+  present: { label: 'P', cls: 'bg-emerald-500 text-white' },
+  late:    { label: 'L', cls: 'bg-amber-400 text-white' },
+  absent:  { label: 'A', cls: 'bg-rose-500 text-white' },
+  excused: { label: 'E', cls: 'bg-gray-300 text-gray-700' },
+};
+
+function AttendanceHistoryTab({
+  groupId, groupStudents, selectedMonth, setSelectedMonth,
+}: {
+  groupId: string;
+  groupStudents: Student[];
+  selectedMonth: string;
+  setSelectedMonth: (m: string) => void;
+}) {
+  const { data: records = [], isLoading } = useQuery({
+    queryKey: ['attendance', 'group', groupId, selectedMonth],
+    queryFn: async () => {
+      const res = await api.get<{ data?: unknown[] } | unknown[]>(`/attendance/group/${groupId}`, {
+        params: { month: selectedMonth },
+      });
+      const raw = res.data;
+      return (Array.isArray(raw) ? raw : (raw as { data: unknown[] }).data ?? []) as Array<{
+        student_id: string; date: string; status: string;
+      }>;
+    },
+    enabled: !!groupId,
+  });
+
+  // Build map: studentId → { day → status }
+  const map = useMemo(() => {
+    const m: Record<string, Record<number, string>> = {};
+    for (const r of records) {
+      const day = new Date(r.date).getDate();
+      if (!m[r.student_id]) m[r.student_id] = {};
+      m[r.student_id][day] = r.status;
+    }
+    return m;
+  }, [records]);
+
+  // Days in selected month
+  const [year, month] = selectedMonth.split('-').map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  return (
+    <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+        <h2 className="text-base font-bold text-[#1D1D1F]">Davomat tarixi</h2>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2 text-xs text-gray-500">
+            {Object.entries(ATT_CELL).map(([, v]) => (
+              <span key={v.label} className={`inline-flex items-center justify-center w-5 h-5 rounded text-xs font-bold ${v.cls}`}>{v.label}</span>
+            ))}
+            <span className="text-gray-400">= P/L/A/E</span>
+          </div>
+          <input
+            type="month"
+            value={selectedMonth}
+            max={new Date().toISOString().slice(0, 7)}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="text-xs font-semibold text-[#3B82F6] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="p-6 space-y-2">{[1,2,3].map((i) => <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+      ) : groupStudents.length === 0 ? (
+        <div className="py-16 text-center text-sm text-gray-400">Guruhda o'quvchi yo'q</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs min-w-max">
+            <thead>
+              <tr className="bg-gray-50/80">
+                <th className="sticky left-0 z-10 bg-gray-50 px-4 py-2.5 text-left font-semibold text-gray-500 whitespace-nowrap min-w-[140px]">O'quvchi</th>
+                {days.map((d) => (
+                  <th key={d} className="px-1 py-2.5 text-center font-semibold text-gray-400 w-8">{d}</th>
+                ))}
+                <th className="px-3 py-2.5 text-center font-semibold text-gray-500 whitespace-nowrap">%</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {groupStudents.map((student) => {
+                const studentMap = map[student.id] ?? {};
+                const markedDays = Object.values(studentMap);
+                const presentCount = markedDays.filter((s) => s === 'present' || s === 'late').length;
+                const total = markedDays.length;
+                const pct = total > 0 ? Math.round((presentCount / total) * 100) : null;
+                return (
+                  <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-[#1D1D1F] whitespace-nowrap hover:bg-gray-50">
+                      {student.first_name} {student.last_name}
+                    </td>
+                    {days.map((d) => {
+                      const status = studentMap[d];
+                      const cfg = status ? ATT_CELL[status] : null;
+                      return (
+                        <td key={d} className="px-1 py-2 text-center">
+                          {cfg ? (
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded font-bold text-[10px] ${cfg.cls}`}>
+                              {cfg.label}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-50 text-gray-200">·</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="px-3 py-2 text-center font-semibold">
+                      {pct !== null ? (
+                        <span className={pct >= 80 ? 'text-emerald-600' : pct >= 60 ? 'text-amber-500' : 'text-rose-500'}>
+                          {pct}%
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---- Main Component ----
 export function GroupDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -199,7 +330,8 @@ export function GroupDetailPage() {
   const [settingsSaved, setSettingsSaved] = useState(false);
 
   // Attendance state
-  const [attendanceDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedMonth, setSelectedMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>({});
   const [attendanceSaved, setAttendanceSaved] = useState(false);
 
@@ -309,28 +441,30 @@ export function GroupDetailPage() {
   };
 
   const handleSaveAttendance = () => {
-    if (!id) {
-      setAttendanceSaved(true);
-      setTimeout(() => setAttendanceSaved(false), 2000);
+    if (!id) return;
+    const records = Object.entries(attendanceMap).map(([studentId, status]) => ({
+      group_id: id,
+      student_id: studentId,
+      date: selectedDate,
+      status,
+    }));
+    if (records.length === 0) {
+      toast.error('Davomat belgilanmagan');
       return;
     }
-    const dateStr = attendanceDate.toISOString().split('T')[0];
-    const records = groupStudents.map((student) => ({
-      group_id: id,
-      student_id: student.id,
-      date: dateStr,
-      status: attendanceMap[student.id] ?? 'absent',
-    }));
     createAttendanceBulk.mutate(
       { records },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['attendance', id] });
+          queryClient.invalidateQueries({ queryKey: ['attendance', 'group', id] });
+          queryClient.invalidateQueries({ queryKey: ['attendance', 'student'] });
           setAttendanceSaved(true);
+          toast.success('Davomat saqlandi ✓');
           setTimeout(() => setAttendanceSaved(false), 2000);
         },
-        onError: () => {
-          alert('Davomatni saqlashda xatolik yuz berdi. Qayta urinib ko\'ring.');
+        onError: (err) => {
+          toast.error('Xatolik yuz berdi');
+          console.error(err);
         },
       }
     );
@@ -479,9 +613,13 @@ export function GroupDetailPage() {
                   <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
                     <h2 className="text-base font-bold text-[#1D1D1F]">Davomat belgilash</h2>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-[#3B82F6] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
-                        Bugun, {attendanceDate.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-')}
-                      </span>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        max={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => { setSelectedDate(e.target.value); setAttendanceMap({}); setAttendanceSaved(false); }}
+                        className="text-xs font-semibold text-[#3B82F6] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      />
                       <button
                         onClick={handleSaveAttendance}
                         className={cn(
@@ -651,18 +789,7 @@ export function GroupDetailPage() {
 
               {/* ===== ATTENDANCE HISTORY ===== */}
               {activeTab === 'attendance' && (
-                <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
-                  <div className="px-6 py-5 border-b border-gray-50">
-                    <h2 className="text-base font-bold text-[#1D1D1F]">Davomat tarixi</h2>
-                  </div>
-                  <div className="py-16 flex flex-col items-center justify-center text-center px-6">
-                    <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-300 mb-4">
-                      <CalendarDays className="w-7 h-7" />
-                    </div>
-                    <h3 className="text-base font-bold text-[#1D1D1F] mb-1">Davomat tarixi yo'q</h3>
-                    <p className="text-sm text-gray-400 max-w-xs">Hali davomat belgilanmagan. O'quvchilar & Davomat bo'limidan boshlang.</p>
-                  </div>
-                </div>
+                <AttendanceHistoryTab groupId={id} groupStudents={groupStudents} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} />
               )}
 
               {/* ===== SETTINGS TAB ===== */}
