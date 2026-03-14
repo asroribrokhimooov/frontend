@@ -149,14 +149,15 @@ export function DashboardPage() {
     },
   });
 
-  const totalStudents = studentsData?.total ?? studentsData?.data?.length ?? 0;
+  const totalStudents = studentsData?.total ?? (Array.isArray(studentsData?.data) ? studentsData.data.length : 0);
+  const groups = Array.isArray(groupsData) ? groupsData : [];
   const activeGroups = useMemo(
-    () => (groupsData ?? []).filter((g) => !g.is_archived),
-    [groupsData]
+    () => groups.filter((g) => !g.is_archived),
+    [groups]
   );
   const todayLessons = useMemo(
-    () => (groupsData ?? []).filter((g) => g.lesson_days?.includes(todayDayKey) && !g.is_archived),
-    [groupsData, todayDayKey]
+    () => groups.filter((g) => Array.isArray(g.lesson_days) && g.lesson_days.includes(todayDayKey) && !g.is_archived),
+    [groups, todayDayKey]
   );
   const expectedRevenue = reportsData?.expected_revenue ?? reportsData?.total ?? 0;
   const debtorsCount = Array.isArray(debtorsData) ? debtorsData.length : (debtorsData?.count ?? debtorsData?.total ?? 0);
@@ -505,9 +506,9 @@ export function DashboardPage() {
                 ) : (
                   <div className="space-y-6">
                     {[
-                      { key: 'overdue', items: remindersSummary?.overdue ?? [], variant: 'danger' as const },
-                      { key: 'today', items: remindersSummary?.today ?? [], variant: 'warning' as const },
-                      { key: 'upcoming', items: remindersSummary?.upcoming ?? [], variant: 'info' as const },
+                      { key: 'overdue', items: Array.isArray(remindersSummary?.overdue) ? remindersSummary.overdue : [], variant: 'danger' as const },
+                      { key: 'today', items: Array.isArray(remindersSummary?.today) ? remindersSummary.today : [], variant: 'warning' as const },
+                      { key: 'upcoming', items: Array.isArray(remindersSummary?.upcoming) ? remindersSummary.upcoming : [], variant: 'info' as const },
                     ].map(({ key, items, variant }) => (
                       <div key={key}>
                         <div className="flex items-center gap-2 mb-3">

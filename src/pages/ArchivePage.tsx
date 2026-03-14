@@ -89,10 +89,10 @@ export function ArchivePage() {
   const [search, setSearch] = useState('');
   const [restoreTarget, setRestoreTarget] = useState<ArchiveItem | null>(null);
 
-  const { data: rawArchives = [], isLoading } = useArchive();
+  const { data: rawArchives, isLoading } = useArchive();
   const restoreMutation = useRestoreArchive();
 
-  const archives = rawArchives;
+  const archives = Array.isArray(rawArchives) ? rawArchives : [];
 
   const filtered = useMemo(() => {
     let list = filter === 'all' ? archives : archives.filter((a) => a.entity_type === filter);
