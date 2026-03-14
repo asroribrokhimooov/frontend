@@ -911,6 +911,7 @@ export function GroupDetailPage() {
       <ManageStudentsModal
         open={manageStudentsOpen}
         onClose={() => setManageStudentsOpen(false)}
+        groupId={id}
         groupStudents={groupStudents}
         allStudents={allStudents}
         onAddStudents={handleAddStudents}
