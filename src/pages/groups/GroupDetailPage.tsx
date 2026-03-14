@@ -180,6 +180,93 @@ function DebtorsModal({ open, onClose, group, debtors }: DebtorsModalProps) {
   );
 }
 
+// ---- Payments Tab ----
+const METHOD_LABEL: Record<string, string> = {
+  cash: 'Naqt', click: 'Click', payme: 'Payme', other: 'Boshqa',
+};
+const METHOD_CLS: Record<string, string> = {
+  cash: 'bg-emerald-100 text-emerald-700',
+  click: 'bg-blue-100 text-blue-700',
+  payme: 'bg-purple-100 text-purple-700',
+  other: 'bg-gray-100 text-gray-600',
+};
+const STATUS_CLS: Record<string, string> = {
+  paid: 'bg-emerald-100 text-emerald-700',
+  prepaid: 'bg-blue-100 text-blue-700',
+  partial: 'bg-amber-100 text-amber-700',
+  promised: 'bg-orange-100 text-orange-700',
+};
+const STATUS_LABEL: Record<string, string> = {
+  paid: "To'liq", prepaid: 'Ortiqcha', partial: 'Qisman', promised: "Va'da",
+};
+
+function formatDate(iso?: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+function PaymentsTab({ groupId }: { groupId: string }) {
+  const { data: payments = [], isLoading } = useQuery({
+    queryKey: ['payments', 'group', groupId],
+    queryFn: async () => {
+      const res = await api.get<{ data?: unknown[] } | unknown[]>(`/payments`, {
+        params: { group_id: groupId },
+      });
+      const raw = res.data;
+      return (Array.isArray(raw) ? raw : (raw as { data: unknown[] }).data ?? []) as import('../../types').Payment[];
+    },
+    enabled: !!groupId,
+  });
+
+  return (
+    <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
+      <div className="px-6 py-5 border-b border-gray-50">
+        <h2 className="text-base font-bold text-[#1D1D1F]">To'lovlar tarixi</h2>
+      </div>
+      {isLoading ? (
+        <div className="p-6 space-y-3">
+          {[1,2,3].map((i) => <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />)}
+        </div>
+      ) : payments.length === 0 ? (
+        <div className="py-16 flex flex-col items-center justify-center text-center px-6">
+          <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-300 mb-4">
+            <CreditCard className="w-7 h-7" />
+          </div>
+          <h3 className="text-base font-bold text-[#1D1D1F] mb-1">Hali to'lovlar yo'q</h3>
+          <p className="text-sm text-gray-400 max-w-xs">Bu guruh uchun hali to'lov kiritilmagan. Tezkor amallardan to'lov qo'shing.</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-50">
+          {payments.map((p) => {
+            const studentName = p.student
+              ? `${p.student.first_name} ${p.student.last_name}`
+              : '—';
+            return (
+              <div key={p.id} className="flex items-center gap-3 px-6 py-3.5 hover:bg-gray-50/50 transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#1D1D1F] truncate">{studentName}</p>
+                  <p className="text-xs text-gray-400">{formatDate(p.created_at)}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${METHOD_CLS[p.payment_method] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {METHOD_LABEL[p.payment_method] ?? p.payment_method}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${STATUS_CLS[p.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {STATUS_LABEL[p.status] ?? p.status}
+                  </span>
+                  <span className="text-sm font-bold text-[#1D1D1F] min-w-[80px] text-right">
+                    {formatCurrency(p.amount)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---- Attendance History Tab ----
 const ATT_CELL: Record<string, { label: string; cls: string }> = {
   present: { label: 'P', cls: 'bg-emerald-500 text-white' },
@@ -772,20 +859,7 @@ export function GroupDetailPage() {
               )}
 
               {/* ===== PAYMENTS TAB ===== */}
-              {activeTab === 'payments' && (
-                <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
-                  <div className="px-6 py-5 border-b border-gray-50">
-                    <h2 className="text-base font-bold text-[#1D1D1F]">To'lovlar tarixi</h2>
-                  </div>
-                  <div className="py-16 flex flex-col items-center justify-center text-center px-6">
-                    <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-300 mb-4">
-                      <CreditCard className="w-7 h-7" />
-                    </div>
-                    <h3 className="text-base font-bold text-[#1D1D1F] mb-1">To'lovlar yo'q</h3>
-                    <p className="text-sm text-gray-400 max-w-xs">Bu guruh uchun hali to'lov kiritilmagan. Tezkor amallardan to'lov qo'shing.</p>
-                  </div>
-                </div>
-              )}
+              {activeTab === 'payments' && <PaymentsTab groupId={id} />}
 
               {/* ===== ATTENDANCE HISTORY ===== */}
               {activeTab === 'attendance' && (
