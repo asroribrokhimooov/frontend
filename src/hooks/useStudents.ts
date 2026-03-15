@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
+import { safeArray } from '../utils/safeArray';
 import type { Student, StudentCreatePayload, StudentPatchPayload } from '../types';
 
 const QUERY_KEY_STUDENTS = ['students'] as const;
@@ -10,9 +11,7 @@ export function useStudents() {
     queryFn: async (): Promise<Student[]> => {
       try {
         const res = await api.get<Student[] | { data: Student[] }>('/students');
-        const raw = res.data;
-        const list = Array.isArray(raw) ? raw : (raw as { data: Student[] }).data ?? [];
-        return list;
+        return safeArray<Student>(res.data);
       } catch {
         return [];
       }

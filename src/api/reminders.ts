@@ -1,10 +1,10 @@
 import { api } from './axios';
+import { safeArray } from '../utils/safeArray';
 import type { Reminder, ReminderCreatePayload, RemindersSummary } from '../types';
 
 export async function getReminders() {
   const res = await api.get<Reminder[]>('/reminders');
-  const raw = res.data;
-  return Array.isArray(raw) ? raw : (raw as { data: Reminder[] }).data ?? [];
+  return safeArray<Reminder>(res.data);
 }
 
 export async function getRemindersSummary() {

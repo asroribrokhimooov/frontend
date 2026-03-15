@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
+import { safeArray } from '../utils/safeArray';
 import * as paymentsAPI from '../api/payments';
 import type { Payment, PaymentCreatePayload, PaymentUpdatePayload, Debtor, PaymentReport } from '../types';
 
@@ -13,9 +14,7 @@ export function usePayments() {
     queryFn: async (): Promise<Payment[]> => {
       try {
         const res = await api.get<Payment[] | { data: Payment[] }>('/payments');
-        const raw = res.data;
-        const list = Array.isArray(raw) ? raw : (raw as { data: Payment[] }).data ?? [];
-        return list;
+        return safeArray<Payment>(res.data);
       } catch {
         return [];
       }
@@ -31,9 +30,7 @@ export function useDebtors() {
     queryFn: async (): Promise<Debtor[]> => {
       try {
         const res = await api.get<Debtor[] | { data: Debtor[] }>('/payments/debtors');
-        const raw = res.data;
-        const list = Array.isArray(raw) ? raw : (raw as { data: Debtor[] }).data ?? [];
-        return list;
+        return safeArray<Debtor>(res.data);
       } catch {
         return [];
       }

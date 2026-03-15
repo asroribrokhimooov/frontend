@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
+import { safeArray } from '../utils/safeArray';
 import type { Group, GroupPayload } from '../types';
 
 const QUERY_KEY_GROUPS = ['groups'] as const;
@@ -10,9 +11,7 @@ export function useGroups() {
     queryFn: async (): Promise<Group[]> => {
       try {
         const res = await api.get<Group[] | { data: Group[] }>('/groups');
-        const raw = res.data;
-        const list = Array.isArray(raw) ? raw : (raw as { data: Group[] }).data ?? [];
-        return list;
+        return safeArray<Group>(res.data);
       } catch {
         return [];
       }

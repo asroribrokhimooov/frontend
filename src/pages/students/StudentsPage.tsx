@@ -16,6 +16,7 @@ import { api } from '../../api/axios';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { utils, writeFile } from 'xlsx';
+import { safeArray } from '../../utils/safeArray';
 import type { Student, StudentCreatePayload, Payment } from '../../types';
 
 const PAGE_SIZE = 30;
@@ -52,8 +53,7 @@ function StudentPaymentBadge({ studentId }: { studentId: string }) {
       const res = await api.get<Payment[] | { data: Payment[] }>('/payments', {
         params: { student_id: studentId },
       });
-      const raw = res.data;
-      return Array.isArray(raw) ? raw : (raw as { data: Payment[] }).data ?? [];
+      return safeArray<Payment>(res.data);
     },
     staleTime: 30_000,
     retry: 1,

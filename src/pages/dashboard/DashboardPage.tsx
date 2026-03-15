@@ -31,6 +31,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { cn } from '../../utils/cn';
+import { safeArray } from '../../utils/safeArray';
 import { useAuthStore } from '../../store/authStore';
 import { formatDate } from '../../utils/formatDate';
 import { formatNumber } from '../../utils/formatNumber';
@@ -45,6 +46,7 @@ import type {
   Payment,
   PaymentsReportResponse,
   DebtorsResponse,
+  Reminder,
   RemindersSummaryResponse,
   PaginatedResponse,
   PaymentCreatePayload,
@@ -98,7 +100,7 @@ export function DashboardPage() {
     queryKey: ['students'],
     queryFn: async () => {
       const res = await api.get<Student[] | { data: Student[]; total?: number }>('/students');
-      const data = Array.isArray(res.data) ? res.data : (res.data as { data: Student[] }).data ?? [];
+      const data = safeArray<Student>(res.data);
       const total = Array.isArray(res.data) ? res.data.length : (res.data as { total?: number }).total ?? data.length;
       return { data, total };
     },
@@ -108,8 +110,7 @@ export function DashboardPage() {
     queryKey: ['groups'],
     queryFn: async () => {
       const res = await api.get<Group[]>('/groups');
-      const list = Array.isArray(res.data) ? res.data : [];
-      return list;
+      return safeArray<Group>(res.data);
     },
   });
 
@@ -143,14 +144,12 @@ export function DashboardPage() {
       const res = await api.get<Payment[] | PaginatedResponse<Payment>>('/payments', {
         params: { limit: 5 },
       });
-      const raw = res.data;
-      const data = Array.isArray(raw) ? raw : (raw as PaginatedResponse<Payment>).data ?? [];
-      return data;
+      return safeArray<Payment>(res.data);
     },
   });
 
-  const totalStudents = studentsData?.total ?? (Array.isArray(studentsData?.data) ? studentsData.data.length : 0);
-  const groups = Array.isArray(groupsData) ? groupsData : [];
+  const totalStudents = studentsData?.total ?? safeArray(studentsData?.data).length;
+  const groups = safeArray<Group>(groupsData);
   const activeGroups = useMemo(
     () => groups.filter((g) => !g.is_archived),
     [groups]
@@ -161,7 +160,7 @@ export function DashboardPage() {
   );
   const expectedRevenue = reportsData?.expected_revenue ?? reportsData?.total ?? 0;
   const debtorsCount = Array.isArray(debtorsData) ? debtorsData.length : (debtorsData?.count ?? debtorsData?.total ?? 0);
-  const recentPayments = Array.isArray(recentPaymentsData) ? recentPaymentsData : [];
+  const recentPayments = safeArray<Payment>(recentPaymentsData);
 
   const hasKpiError = studentsError || groupsError || reportsError || debtorsError;
   const isLoading = studentsLoading || groupsLoading || reportsLoading || debtorsLoading;
@@ -506,9 +505,9 @@ export function DashboardPage() {
                 ) : (
                   <div className="space-y-6">
                     {[
-                      { key: 'overdue', items: Array.isArray(remindersSummary?.overdue) ? remindersSummary.overdue : [], variant: 'danger' as const },
-                      { key: 'today', items: Array.isArray(remindersSummary?.today) ? remindersSummary.today : [], variant: 'warning' as const },
-                      { key: 'upcoming', items: Array.isArray(remindersSummary?.upcoming) ? remindersSummary.upcoming : [], variant: 'info' as const },
+                      { key: 'overdue', items: safeArray<Reminder>(remindersSummary?.overdue), variant: 'danger' as const },
+                      { key: 'today', items: safeArray<Reminder>(remindersSummary?.today), variant: 'warning' as const },
+                      { key: 'upcoming', items: safeArray<Reminder>(remindersSummary?.upcoming), variant: 'info' as const },
                     ].map(({ key, items, variant }) => (
                       <div key={key}>
                         <div className="flex items-center gap-2 mb-3">
