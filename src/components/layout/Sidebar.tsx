@@ -264,6 +264,7 @@ function SidebarUser() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const name = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
+  const shortId = user?.short_id ?? '';
   const email = user?.email ?? '';
 
   const handleLogout = () => {
@@ -289,9 +290,9 @@ function SidebarUser() {
         </div>
         <div className="min-w-0 flex-1 text-left">
           <p className="text-[14px] font-semibold text-[#111827] truncate">{name}</p>
-          {email && (
-            <p className="text-[11px] text-[#B0B7C3] truncate">{email}</p>
-          )}
+          <p className="text-[11px] text-[#B0B7C3] truncate">
+            {shortId && `ID: ${shortId}`}{shortId && email && ' · '}{email}
+          </p>
         </div>
         <Pencil className="w-[14px] h-[14px] text-[#9CA3AF] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>

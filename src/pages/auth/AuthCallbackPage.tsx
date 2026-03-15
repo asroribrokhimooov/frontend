@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../api/axios';
+import { unwrapUser } from '../../hooks/useSettings';
 import type { User } from '../../types';
 
 export function AuthCallbackPage() {
@@ -26,7 +27,7 @@ export function AuthCallbackPage() {
     api
       .get<User>('/settings/profile')
       .then((res) => {
-        const user = res.data;
+        const user = unwrapUser(res.data) as User;
         setUser(user);
         if (!user?.first_name?.trim()) {
           navigate('/onboarding', { replace: true });

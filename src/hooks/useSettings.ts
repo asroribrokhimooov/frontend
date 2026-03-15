@@ -4,12 +4,19 @@ import type { User, ProfileUpdatePayload } from '../types';
 
 const QUERY_KEY_PROFILE = ['profile'] as const;
 
+export function unwrapUser(raw: any): User | null {
+    if (!raw) return null;
+    if (raw.first_name !== undefined || raw.email !== undefined) return raw;
+    if (raw.data && (raw.data.first_name !== undefined || raw.data.email !== undefined)) return raw.data;
+    return raw;
+}
+
 export function useProfile() {
     return useQuery({
         queryKey: QUERY_KEY_PROFILE,
         queryFn: async (): Promise<User | null> => {
             const res = await api.get<User>('/settings/profile');
-            return res.data ?? null;
+            return unwrapUser(res.data);
         },
     });
 }
@@ -20,7 +27,7 @@ export function useUpdateProfile() {
     return useMutation({
         mutationFn: async (payload: ProfileUpdatePayload & { language?: string; theme?: string }) => {
             const res = await api.patch<User>('/settings/profile', payload);
-            return res.data;
+            return unwrapUser(res.data) as User;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: QUERY_KEY_PROFILE });

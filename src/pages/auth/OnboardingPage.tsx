@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../api/axios';
+import { unwrapUser } from '../../hooks/useSettings';
 import { cn } from '../../utils/cn';
+import type { User } from '../../types';
 
 export function OnboardingPage() {
   const { t } = useTranslation();
@@ -23,11 +25,14 @@ export function OnboardingPage() {
     }
     setLoading(true);
     try {
-      const { data } = await api.patch<{ first_name: string; last_name: string }>(
-        '/settings/profile',
-        { first_name: firstName.trim(), last_name: lastName.trim() }
-      );
-      setUser({ ...user!, first_name: data.first_name, last_name: data.last_name });
+      await api.patch('/settings/profile', {
+        first_name: firstName.trim(),
+        last_name: lastName.trim() || null,
+      });
+      // Re-fetch profile to get full user object
+      const res = await api.get('/settings/profile');
+      const updated = unwrapUser(res.data) as User;
+      setUser(updated);
       navigate('/dashboard', { replace: true });
     } catch {
       setError(t('common.error'));
