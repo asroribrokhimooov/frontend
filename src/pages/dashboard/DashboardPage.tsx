@@ -229,33 +229,6 @@ export function DashboardPage() {
               </>
             ) : (
               <>
-                <Card padding="lg" className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0">
-                  <div className="flex items-center gap-3 text-gray-500 mb-2">
-                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
-                      <Users className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm font-semibold">{t('dashboard.totalStudents')}</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatNumber(totalStudents)}</p>
-                </Card>
-                <Card padding="lg" className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0">
-                  <div className="flex items-center gap-3 text-gray-500 mb-2">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
-                      <GraduationCap className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm font-semibold">{t('dashboard.totalGroups')}</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatNumber(activeGroups.length)}</p>
-                </Card>
-                <Card padding="lg" className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0">
-                  <div className="flex items-center gap-3 text-gray-500 mb-2">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-                      <Wallet className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm font-semibold">{t('dashboard.expectedRevenue')}</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatCurrency(expectedRevenue)}</p>
-                </Card>
                 <Card
                   padding="lg"
                   className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0 cursor-pointer select-none"
@@ -269,6 +242,33 @@ export function DashboardPage() {
                   </div>
                   <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatNumber(debtorsCount)}</p>
                   <p className="text-xs text-red-400 ml-1 font-medium">Ro'yxatni ko'rish →</p>
+                </Card>
+                <Card padding="lg" className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0">
+                  <div className="flex items-center gap-3 text-gray-500 mb-2">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-semibold">{t('dashboard.totalStudents')}</span>
+                  </div>
+                  <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatNumber(totalStudents)}</p>
+                </Card>
+                <Card padding="lg" className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0">
+                  <div className="flex items-center gap-3 text-gray-500 mb-2">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+                      <Wallet className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-semibold">{t('dashboard.expectedRevenue')}</span>
+                  </div>
+                  <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatCurrency(expectedRevenue)}</p>
+                </Card>
+                <Card padding="lg" className="flex flex-col gap-2 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-2 transition-all duration-300 border-0">
+                  <div className="flex items-center gap-3 text-gray-500 mb-2">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-semibold">{t('dashboard.totalGroups')}</span>
+                  </div>
+                  <p className="text-3xl font-extrabold text-[#1F2937] ml-1">{formatNumber(activeGroups.length)}</p>
                 </Card>
               </>
             )}
