@@ -97,7 +97,7 @@ export function DashboardPage() {
   const addStudentToGroup  = useAddStudentToGroup(undefined);
 
   const { data: studentsData, isLoading: studentsLoading, isError: studentsError } = useQuery({
-    queryKey: ['students'],
+    queryKey: ['dashboard-students'],
     queryFn: async () => {
       const res = await api.get<Student[] | { data: Student[]; total?: number }>('/students');
       const data = safeArray<Student>(res.data);
@@ -107,7 +107,7 @@ export function DashboardPage() {
   });
 
   const { data: groupsData, isLoading: groupsLoading, isError: groupsError } = useQuery({
-    queryKey: ['groups'],
+    queryKey: ['dashboard-groups'],
     queryFn: async () => {
       const res = await api.get<Group[]>('/groups');
       return safeArray<Group>(res.data);

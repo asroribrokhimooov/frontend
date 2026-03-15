@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
+import { safeArray } from '../../utils/safeArray';
 import {
   Search, X, Check, CheckCircle2, AlertTriangle, Zap,
   Banknote, Smartphone, Building2, MoreHorizontal,
@@ -9,6 +10,7 @@ import {
 import { Modal } from '../../components/ui/Modal';
 import { useStudents } from '../../hooks/useStudents';
 import { useGroups } from '../../hooks/useGroups';
+import type { Student, Group } from '../../types';
 import { formatCurrency } from '../../utils/formatCurrency';
 import type {
   Payment, PaymentCreatePayload, PaymentUpdatePayload,
@@ -202,8 +204,10 @@ export function PaymentFormModal({
   onSubmitMultiple,
   loading = false,
 }: PaymentFormModalProps) {
-  const { data: students = [] } = useStudents();
-  const { data: groups = [] } = useGroups();
+  const { data: rawStudents = [] } = useStudents();
+  const { data: rawGroups = [] } = useGroups();
+  const students = safeArray<Student>(rawStudents);
+  const groups = safeArray<Group>(rawGroups);
 
   const [studentSearch, setStudentSearch] = useState('');
   const [studentId, setStudentId] = useState('');
