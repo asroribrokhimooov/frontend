@@ -60,18 +60,6 @@ function formatMonthLabel(monthYear: string): string {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function MethodBadge({ method }: { method: string }) {
-  const meta = METHOD_META[method] ?? METHOD_META.other;
-  return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold"
-      style={{ color: meta.color, background: meta.bg }}
-    >
-      {meta.icon}
-      {meta.label}
-    </span>
-  );
-}
 
 function StatusBadge({ status }: { status: string }) {
   const meta = STATUS_META[status] ?? STATUS_META.paid;
@@ -314,21 +302,18 @@ export function PaymentsPage() {
               </div>
 
               {paymentsLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 bg-white rounded-2xl animate-pulse" />
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-4 space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : filteredPayments.length === 0 ? (
-                <div
-                  className="flex flex-col items-center justify-center py-16 bg-white rounded-3xl"
-                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-[#F5F5F7] flex items-center justify-center mb-4">
-                    <TrendingUp className="w-8 h-8 text-[#c7c7cc]" />
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-12 text-center">
+                  <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-7 h-7 text-gray-400" />
                   </div>
-                  <p className="text-[15px] font-semibold text-[#1c1c1e]">To'lovlar yo'q</p>
-                  <p className="text-[13px] text-[#8e8e93] mt-1 mb-4">Yangi to'lov qo'shish uchun tugmani bosing</p>
+                  <p className="text-base font-semibold text-[#1F2937] mb-1">To'lovlar yo'q</p>
+                  <p className="text-sm text-gray-400 mb-5">Yangi to'lov qo'shish uchun tugmani bosing</p>
                   <button
                     onClick={openCreate}
                     className="px-5 py-2.5 rounded-2xl text-white text-[13px] font-semibold"
@@ -338,15 +323,50 @@ export function PaymentsPage() {
                   </button>
                 </div>
               ) : (
-                <>
-                  <div className="space-y-2.5">
-                    {paginatedPayments.map((payment) => (
-                      <PaymentCard
-                        key={payment.id}
-                        payment={payment}
-                        onClick={() => setDetailPayment(payment)}
-                      />
-                    ))}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden border border-white">
+                  <div className="divide-y divide-gray-100/80">
+                    {paginatedPayments.map((payment, idx) => {
+                      const avatarHue = ((payment.student_id?.charCodeAt(5) ?? 0) * 47) % 360;
+                      const date = payment.created_at
+                        ? new Date(payment.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
+                        : '';
+                      return (
+                        <div
+                          key={payment.id}
+                          onClick={() => setDetailPayment(payment)}
+                          className="group flex items-center gap-3.5 px-5 py-3.5 hover:bg-blue-50/40 active:bg-blue-50/60 transition-all cursor-pointer"
+                        >
+                          <span className="text-xs text-gray-300 font-medium w-5 shrink-0 tabular-nums">
+                            {(page - 1) * ITEMS_PER_PAGE + idx + 1}
+                          </span>
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                            style={{ background: `hsl(${avatarHue},55%,55%)` }}
+                          >
+                            {payment.student?.first_name?.[0]}{payment.student?.last_name?.[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-[#1F2937] truncate text-sm group-hover:text-blue-700 transition-colors">
+                              {payment.student?.first_name} {payment.student?.last_name}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5">
+                              <span className="text-xs text-gray-400 truncate">{payment.group?.name ?? '—'}</span>
+                              <span className="text-xs text-gray-300">{date}</span>
+                              <span className="text-xs text-gray-400 hidden md:inline">
+                                {METHOD_META[payment.payment_method]?.label ?? payment.payment_method}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold text-[#1F2937] tabular-nums">
+                              {formatCurrency(payment.amount)}
+                            </p>
+                            <StatusBadge status={payment.status} />
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors shrink-0" />
+                        </div>
+                      );
+                    })}
                   </div>
                   <Pagination
                     page={page}
@@ -355,7 +375,7 @@ export function PaymentsPage() {
                     perPage={ITEMS_PER_PAGE}
                     onChange={setPage}
                   />
-                </>
+                </div>
               )}
             </div>
           )}
@@ -364,23 +384,20 @@ export function PaymentsPage() {
           {/* TAB: Debtors                                                   */}
           {/* ══════════════════════════════════════════════════════════════ */}
           {tab === 'debtors' && (
-            <div className="space-y-2.5">
+            <div className="space-y-4">
               {debtorsLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 bg-white rounded-2xl animate-pulse" />
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-4 space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : debtors.length === 0 ? (
-                <div
-                  className="flex flex-col items-center justify-center py-16 bg-white rounded-3xl"
-                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-4">
-                    <TrendingUp className="w-8 h-8 text-green-400" />
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-12 text-center">
+                  <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-7 h-7 text-green-400" />
                   </div>
-                  <p className="text-[15px] font-semibold text-[#1c1c1e]">Qarzdorlar yo'q</p>
-                  <p className="text-[13px] text-[#8e8e93] mt-1">Barcha to'lovlar amalga oshirilgan</p>
+                  <p className="text-base font-semibold text-[#1F2937] mb-1">Qarzdorlar yo'q</p>
+                  <p className="text-sm text-gray-400">Barcha to'lovlar amalga oshirilgan</p>
                 </div>
               ) : (
                 <>
@@ -393,46 +410,53 @@ export function PaymentsPage() {
                       Jami {debtors.length} nafar o'quvchida qarzdorlik mavjud
                     </p>
                   </div>
-                  {paginatedDebtors.map((debtor) => (
-                    <div
-                      key={debtor.student_id}
-                      className="flex items-center gap-3 px-4 py-3.5 bg-white rounded-2xl"
-                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)' }}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{
-                          background: `hsl(${(debtor.student_id.charCodeAt(5) * 47) % 360},55%,55%)`,
-                        }}
-                      >
-                        {debtor.student?.first_name?.[0]}{debtor.student?.last_name?.[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-semibold text-[#1c1c1e] truncate">
-                          {debtor.student?.first_name} {debtor.student?.last_name}
-                        </p>
-                        <p className="text-[12px] text-[#8e8e93] truncate">{debtor.group?.name}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[14px] font-bold text-[#FF3B30]">
-                          -{formatCurrency(debtor.total_debt)}
-                        </p>
-                        <button
-                          onClick={openCreate}
-                          className="mt-1 text-[11px] font-semibold text-[#007AFF] hover:opacity-70 transition-opacity"
-                        >
-                          To'lovni kiritish →
-                        </button>
-                      </div>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden border border-white">
+                    <div className="divide-y divide-gray-100/80">
+                      {paginatedDebtors.map((debtor, idx) => {
+                        const avatarHue = ((debtor.student_id?.charCodeAt(5) ?? 0) * 47) % 360;
+                        return (
+                          <div
+                            key={debtor.student_id}
+                            className="group flex items-center gap-3.5 px-5 py-3.5 hover:bg-blue-50/40 transition-all"
+                          >
+                            <span className="text-xs text-gray-300 font-medium w-5 shrink-0 tabular-nums">
+                              {(debtorPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                            </span>
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                              style={{ background: `hsl(${avatarHue},55%,55%)` }}
+                            >
+                              {debtor.student?.first_name?.[0]}{debtor.student?.last_name?.[0]}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-[#1F2937] truncate text-sm">
+                                {debtor.student?.first_name} {debtor.student?.last_name}
+                              </p>
+                              <span className="text-xs text-gray-400 truncate">{debtor.group?.name}</span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-sm font-bold text-[#FF3B30] tabular-nums">
+                                -{formatCurrency(debtor.total_debt)}
+                              </p>
+                              <button
+                                onClick={openCreate}
+                                className="mt-0.5 text-[11px] font-semibold text-[#007AFF] hover:opacity-70 transition-opacity"
+                              >
+                                To'lovni kiritish →
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                  <Pagination
-                    page={debtorPage}
-                    totalPages={debtorTotalPages}
-                    total={debtors.length}
-                    perPage={ITEMS_PER_PAGE}
-                    onChange={setDebtorPage}
-                  />
+                    <Pagination
+                      page={debtorPage}
+                      totalPages={debtorTotalPages}
+                      total={debtors.length}
+                      perPage={ITEMS_PER_PAGE}
+                      onChange={setDebtorPage}
+                    />
+                  </div>
                 </>
               )}
             </div>
@@ -701,73 +725,6 @@ export function PaymentsPage() {
   );
 }
 
-// ─── Payment card component ───────────────────────────────────────────────────
-
-function PaymentCard({
-  payment,
-  onClick,
-}: {
-  payment: Payment;
-  onClick: () => void;
-}) {
-  const date = payment.created_at
-    ? new Date(payment.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
-    : '';
-  const isEdited =
-    payment.updated_at &&
-    payment.created_at &&
-    new Date(payment.updated_at).getTime() - new Date(payment.created_at).getTime() > 2000;
-
-  return (
-    <div
-      onClick={onClick}
-      className="flex items-center gap-3 px-4 py-3.5 bg-white rounded-2xl transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.99]"
-      style={{
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
-      }}
-    >
-      {/* Avatar */}
-      <div
-        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-        style={{
-          background: `hsl(${((payment.student_id?.charCodeAt(5) ?? 0) * 47) % 360},55%,55%)`,
-        }}
-      >
-        {payment.student?.first_name?.[0]}{payment.student?.last_name?.[0]}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-[14px] font-semibold text-[#1c1c1e] truncate">
-            {payment.student?.first_name} {payment.student?.last_name}
-          </p>
-          {isEdited && (
-            <span
-              className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
-              style={{ background: 'rgba(142,142,147,0.14)', color: '#8e8e93' }}
-            >
-              edited
-            </span>
-          )}
-        </div>
-        <p className="text-[12px] text-[#8e8e93] truncate">{payment.group?.name}</p>
-        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-          <MethodBadge method={payment.payment_method} />
-          <StatusBadge status={payment.status} />
-        </div>
-      </div>
-
-      {/* Amount + date */}
-      <div className="text-right shrink-0">
-        <p className="text-[16px] font-bold text-[#1c1c1e] tabular-nums">
-          {formatCurrency(payment.amount)}
-        </p>
-        <p className="text-[11px] text-[#c7c7cc] mt-0.5">{date}</p>
-      </div>
-    </div>
-  );
-}
 
 // ─── Payment detail modal ─────────────────────────────────────────────────────
 

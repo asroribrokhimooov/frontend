@@ -205,36 +205,75 @@ export function MessagesPage() {
 
               {/* Message list */}
               {messagesLoading ? (
-                <div className="flex flex-col gap-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 bg-white rounded-2xl animate-pulse" />
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-4 space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : messages.length === 0 ? (
-                <div
-                  className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.04)' }}
-                >
-                  <div
-                    className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4"
-                    style={{ background: 'rgba(0,122,255,0.10)' }}
-                  >
-                    <MessageSquare className="w-8 h-8" style={{ color: '#007AFF' }} />
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-12 text-center">
+                  <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-7 h-7 text-blue-400" />
                   </div>
-                  <p className="text-[15px] font-semibold text-[#1c1c1e]">Xabarlar yo'q</p>
-                  <p className="text-[13px] text-[#8e8e93] mt-1">Birinchi xabaringizni yuboring</p>
+                  <p className="text-base font-semibold text-[#1F2937] mb-1">Xabarlar yo'q</p>
+                  <p className="text-sm text-gray-400">Birinchi xabaringizni yuboring</p>
                 </div>
               ) : (
-                <>
-                  <div className="space-y-2.5">
-                    {paginatedMessages.map((msg) => (
-                      <MessageCard
-                        key={msg.id}
-                        message={msg}
-                        groups={groups}
-                        onClick={() => setDetailMessage(msg)}
-                      />
-                    ))}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden border border-white">
+                  <div className="divide-y divide-gray-100/80">
+                    {paginatedMessages.map((msg, idx) => {
+                      const recipientName = msg.receiver
+                        ? `${msg.receiver.first_name} ${msg.receiver.last_name}`
+                        : msg.group_id
+                        ? groups.find((g) => g.id === msg.group_id)?.name ?? 'Guruh'
+                        : "Noma'lum";
+                      const colors = getColors(recipientName);
+                      const isGroup = !msg.receiver && !!msg.group_id;
+                      const date = msg.created_at
+                        ? new Date(msg.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
+                        : '';
+
+                      return (
+                        <div
+                          key={msg.id}
+                          onClick={() => setDetailMessage(msg)}
+                          className="group flex items-center gap-3.5 px-5 py-3.5 hover:bg-blue-50/40 active:bg-blue-50/60 transition-all cursor-pointer"
+                        >
+                          <span className="text-xs text-gray-300 font-medium w-5 shrink-0 tabular-nums">
+                            {(msgPage - 1) * MSG_PER_PAGE + idx + 1}
+                          </span>
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                            style={{ background: colors.bg, color: colors.text }}
+                          >
+                            {recipientName[0]?.toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-[#1F2937] truncate text-sm group-hover:text-blue-700 transition-colors">
+                                {recipientName}
+                              </p>
+                              {isGroup && (
+                                <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ background: 'rgba(52,170,220,0.12)', color: '#34AADC' }}>
+                                  guruh
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-x-2.5 mt-0.5">
+                              <span className="text-xs text-gray-400 truncate">{msg.text}</span>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-[11px] text-gray-400">{date}</p>
+                            <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg" style={{ background: 'rgba(52,199,89,0.10)', color: '#34C759' }}>
+                              <Check className="w-2.5 h-2.5" />
+                              Yuborildi
+                            </span>
+                          </div>
+                          <ChevronLeft className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors shrink-0 rotate-180" />
+                        </div>
+                      );
+                    })}
                   </div>
                   <Pagination
                     page={msgPage}
@@ -243,7 +282,7 @@ export function MessagesPage() {
                     perPage={MSG_PER_PAGE}
                     onChange={setMsgPage}
                   />
-                </>
+                </div>
               )}
             </>
           )}
@@ -662,72 +701,6 @@ export function MessagesPage() {
         />
       )}
     </div>
-  );
-}
-
-// ─── Message Card ──────────────────────────────────────────────────────────────
-
-function MessageCard({
-  message,
-  groups,
-  onClick,
-}: {
-  message: Message;
-  groups: Group[];
-  onClick: () => void;
-}) {
-  const recipientName = message.receiver
-    ? `${message.receiver.first_name} ${message.receiver.last_name}`
-    : message.group_id
-    ? groups.find((g) => g.id === message.group_id)?.name ?? 'Guruh'
-    : 'Noma\'lum';
-
-  const isGroup = !message.receiver && !!message.group_id;
-  const colors = getColors(recipientName);
-
-  const date = message.created_at
-    ? new Date(message.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
-    : '';
-
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 bg-white rounded-2xl text-left transition-all active:scale-[0.99] hover:shadow-md"
-      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)' }}
-    >
-      <div
-        className="w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0"
-        style={{ background: colors.bg, color: colors.text }}
-      >
-        {recipientName[0]?.toUpperCase()}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-[14px] font-semibold text-[#1c1c1e] truncate">{recipientName}</p>
-          {isGroup && (
-            <span
-              className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
-              style={{ background: 'rgba(52,170,220,0.12)', color: '#34AADC' }}
-            >
-              guruh
-            </span>
-          )}
-        </div>
-        <p className="text-[12px] text-[#8e8e93] truncate mt-0.5">{message.text}</p>
-      </div>
-
-      <div className="text-right shrink-0">
-        <p className="text-[11px] text-[#c7c7cc]">{date}</p>
-        <span
-          className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-lg"
-          style={{ background: 'rgba(52,199,89,0.10)', color: '#34C759' }}
-        >
-          <Check className="w-2.5 h-2.5" />
-          Yuborildi
-        </span>
-      </div>
-    </button>
   );
 }
 

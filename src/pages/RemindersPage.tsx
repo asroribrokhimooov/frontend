@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Bell, Users, Calendar, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Bell, Calendar, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Header } from '../components/layout/Header';
 import { useReminders } from '../hooks/useReminders';
@@ -26,132 +26,6 @@ function studentName(r: Reminder): string {
 
 function isOverdue(dateStr: string): boolean {
   return new Date(dateStr) < new Date();
-}
-
-// ─── Reminder Card ────────────────────────────────────────────────────────────
-
-function ReminderCard({ reminder }: { reminder: Reminder }) {
-  const overdue = reminder.due_date ? isOverdue(reminder.due_date) : false;
-
-  if (reminder.type === 'debt_due') {
-    return (
-      <div
-        className="bg-white rounded-2xl px-4 py-4"
-        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)' }}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: overdue ? 'rgba(255,59,48,0.10)' : 'rgba(255,149,0,0.10)' }}
-          >
-            <AlertCircle className="w-5 h-5" style={{ color: overdue ? '#FF3B30' : '#FF9500' }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-0.5">
-              <p className="text-[14px] font-semibold text-[#1c1c1e] truncate">{studentName(reminder)}</p>
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0"
-                style={{
-                  background: overdue ? 'rgba(255,59,48,0.10)' : 'rgba(255,149,0,0.10)',
-                  color: overdue ? '#FF3B30' : '#FF9500',
-                }}
-              >
-                {overdue ? 'Muddati o\'tgan' : 'Qarz'}
-              </span>
-            </div>
-            {(reminder as Reminder & { amount?: number }).amount != null && (
-              <p className="text-[13px] font-bold text-[#FF3B30]">
-                {formatCurrency((reminder as Reminder & { amount?: number }).amount!)}
-              </p>
-            )}
-            <div className="flex items-center gap-1 mt-1">
-              <Clock className="w-3 h-3 text-[#8e8e93]" />
-              <p className="text-[11px] text-[#8e8e93]">Muddat: {formatDate(reminder.due_date)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (reminder.type === 'promised_payment') {
-    return (
-      <div
-        className="bg-white rounded-2xl px-4 py-4"
-        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)' }}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(0,122,255,0.10)' }}
-          >
-            <CheckCircle2 className="w-5 h-5 text-[#007AFF]" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-0.5">
-              <p className="text-[14px] font-semibold text-[#1c1c1e] truncate">{studentName(reminder)}</p>
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0"
-                style={{ background: 'rgba(0,122,255,0.10)', color: '#007AFF' }}
-              >
-                Va'da
-              </span>
-            </div>
-            {(reminder as Reminder & { amount?: number }).amount != null && (
-              <p className="text-[13px] font-bold text-[#007AFF]">
-                {formatCurrency((reminder as Reminder & { amount?: number }).amount!)}
-              </p>
-            )}
-            <div className="flex items-center gap-1 mt-1">
-              <Clock className="w-3 h-3 text-[#8e8e93]" />
-              <p className="text-[11px] text-[#8e8e93]">Va'da sanasi: {formatDate(reminder.due_date)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // lesson type
-  const lessonReminder = reminder as Reminder & { group_name?: string; lesson_time?: string; lesson_day?: string };
-  return (
-    <div
-      className="bg-white rounded-2xl px-4 py-4"
-      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)' }}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ background: 'rgba(52,199,89,0.10)' }}
-        >
-          <Calendar className="w-5 h-5 text-[#34C759]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-0.5">
-            <p className="text-[14px] font-semibold text-[#1c1c1e] truncate">
-              {lessonReminder.group_name ?? 'Guruh'}
-            </p>
-            <span
-              className="text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0"
-              style={{ background: 'rgba(52,199,89,0.10)', color: '#34C759' }}
-            >
-              Dars
-            </span>
-          </div>
-          {(lessonReminder.lesson_time || lessonReminder.lesson_day) && (
-            <p className="text-[13px] text-[#3c3c43]">
-              {lessonReminder.lesson_day && <span>{lessonReminder.lesson_day} · </span>}
-              {lessonReminder.lesson_time && <span>{lessonReminder.lesson_time}</span>}
-            </p>
-          )}
-          <div className="flex items-center gap-1 mt-1">
-            <Clock className="w-3 h-3 text-[#8e8e93]" />
-            <p className="text-[11px] text-[#8e8e93]">Sana: {formatDate(reminder.due_date)}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -268,50 +142,63 @@ export function RemindersPage() {
 
           {/* Content */}
           {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-2xl px-4 py-4 animate-pulse"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#F5F5F7]" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3.5 bg-[#F5F5F7] rounded-lg w-2/3" />
-                      <div className="h-3 bg-[#F5F5F7] rounded-lg w-1/3" />
-                    </div>
-                  </div>
-                </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] p-4 space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
             <EmptyState filter={filter} />
           ) : (
-            <div className="space-y-3">
-              {/* Overdue section */}
-              {filter === 'all' && paginatedFiltered.some((r) => r.due_date && isOverdue(r.due_date)) && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-3.5 h-3.5 text-[#FF3B30]" />
-                    <p className="text-[11px] font-bold text-[#FF3B30] uppercase tracking-wider">Muddati o'tgan</p>
-                  </div>
-                  {paginatedFiltered
-                    .filter((r) => r.due_date && isOverdue(r.due_date))
-                    .map((r) => <ReminderCard key={r.id} reminder={r} />)}
-                  {paginatedFiltered.some((r) => !r.due_date || !isOverdue(r.due_date)) && (
-                    <div className="flex items-center gap-2 pt-1">
-                      <Users className="w-3.5 h-3.5 text-[#8e8e93]" />
-                      <p className="text-[11px] font-bold text-[#8e8e93] uppercase tracking-wider">Kelasi</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden border border-white">
+              <div className="divide-y divide-gray-100/80">
+                {paginatedFiltered.map((reminder, idx) => {
+                  const overdue = reminder.due_date ? isOverdue(reminder.due_date) : false;
+                  const statusColor = overdue ? '#FF3B30' : reminder.type === 'promised_payment' ? '#007AFF' : reminder.type === 'lesson' ? '#34C759' : '#FF9500';
+                  const statusLabel = overdue ? "Muddati o'tgan" : reminder.type === 'promised_payment' ? "Va'da" : reminder.type === 'lesson' ? 'Dars' : 'Qarz';
+                  return (
+                    <div
+                      key={reminder.id}
+                      className="group flex items-center gap-3.5 px-5 py-3.5 hover:bg-blue-50/40 transition-all"
+                    >
+                      <span className="text-xs text-gray-300 font-medium w-5 shrink-0 tabular-nums">
+                        {(page - 1) * ITEMS_PER_PAGE + idx + 1}
+                      </span>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                        style={{ background: `${statusColor}15` }}
+                      >
+                        {reminder.type === 'debt_due' ? (
+                          <AlertCircle className="w-5 h-5" style={{ color: statusColor }} />
+                        ) : reminder.type === 'promised_payment' ? (
+                          <CheckCircle2 className="w-5 h-5" style={{ color: statusColor }} />
+                        ) : (
+                          <Calendar className="w-5 h-5" style={{ color: statusColor }} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-[#1F2937] truncate text-sm">
+                          {studentName(reminder)}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5">
+                          <span className="text-xs text-gray-400">{formatDate(reminder.due_date)}</span>
+                          {(reminder as Reminder & { amount?: number }).amount != null && (
+                            <span className="text-xs font-semibold" style={{ color: statusColor }}>
+                              {formatCurrency((reminder as Reminder & { amount?: number }).amount!)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <span
+                        className="text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0"
+                        style={{ background: `${statusColor}15`, color: statusColor }}
+                      >
+                        {statusLabel}
+                      </span>
                     </div>
-                  )}
-                  {paginatedFiltered
-                    .filter((r) => !r.due_date || !isOverdue(r.due_date))
-                    .map((r) => <ReminderCard key={r.id} reminder={r} />)}
-                </>
-              )}
-              {(filter !== 'all' || !paginatedFiltered.some((r) => r.due_date && isOverdue(r.due_date))) &&
-                paginatedFiltered.map((r) => <ReminderCard key={r.id} reminder={r} />)}
+                  );
+                })}
+              </div>
               <Pagination
                 page={page}
                 totalPages={totalPages}
