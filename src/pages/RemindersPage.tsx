@@ -4,6 +4,7 @@ import { Sidebar } from '../components/layout/Sidebar';
 import { Header } from '../components/layout/Header';
 import { useReminders } from '../hooks/useReminders';
 import { formatCurrency } from '../utils/formatCurrency';
+import { Pagination } from '../components/ui/Pagination';
 import type { Reminder } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -176,14 +177,23 @@ function EmptyState({ filter }: { filter: FilterType }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+const ITEMS_PER_PAGE = 30;
+
 export function RemindersPage() {
   const { data: reminders = [], isLoading } = useReminders();
   const [filter, setFilter] = useState<FilterType>('all');
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     if (filter === 'all') return reminders;
     return reminders.filter((r) => r.type === filter);
   }, [reminders, filter]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedFiltered = filtered.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
 
   const counts = useMemo(() => ({
     all:              reminders.length,
@@ -280,28 +290,35 @@ export function RemindersPage() {
           ) : (
             <div className="space-y-3">
               {/* Overdue section */}
-              {filter === 'all' && filtered.some((r) => r.due_date && isOverdue(r.due_date)) && (
+              {filter === 'all' && paginatedFiltered.some((r) => r.due_date && isOverdue(r.due_date)) && (
                 <>
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-3.5 h-3.5 text-[#FF3B30]" />
                     <p className="text-[11px] font-bold text-[#FF3B30] uppercase tracking-wider">Muddati o'tgan</p>
                   </div>
-                  {filtered
+                  {paginatedFiltered
                     .filter((r) => r.due_date && isOverdue(r.due_date))
                     .map((r) => <ReminderCard key={r.id} reminder={r} />)}
-                  {filtered.some((r) => !r.due_date || !isOverdue(r.due_date)) && (
+                  {paginatedFiltered.some((r) => !r.due_date || !isOverdue(r.due_date)) && (
                     <div className="flex items-center gap-2 pt-1">
                       <Users className="w-3.5 h-3.5 text-[#8e8e93]" />
                       <p className="text-[11px] font-bold text-[#8e8e93] uppercase tracking-wider">Kelasi</p>
                     </div>
                   )}
-                  {filtered
+                  {paginatedFiltered
                     .filter((r) => !r.due_date || !isOverdue(r.due_date))
                     .map((r) => <ReminderCard key={r.id} reminder={r} />)}
                 </>
               )}
-              {(filter !== 'all' || !filtered.some((r) => r.due_date && isOverdue(r.due_date))) &&
-                filtered.map((r) => <ReminderCard key={r.id} reminder={r} />)}
+              {(filter !== 'all' || !paginatedFiltered.some((r) => r.due_date && isOverdue(r.due_date))) &&
+                paginatedFiltered.map((r) => <ReminderCard key={r.id} reminder={r} />)}
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={filtered.length}
+                perPage={ITEMS_PER_PAGE}
+                onChange={setPage}
+              />
             </div>
           )}
 

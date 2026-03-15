@@ -6,6 +6,7 @@ import {
   Banknote, Smartphone, Building2, MoreHorizontal,
   X, Clock, Calendar, Hash, Users,
 } from 'lucide-react';
+import { Pagination } from '../../components/ui/Pagination';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
 import { PaymentFormModal } from './PaymentFormModal';
@@ -94,6 +95,9 @@ export function PaymentsPage() {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [detailPayment, setDetailPayment] = useState<Payment | null>(null);
   const [currentMonth, setCurrentMonth] = useState(getMonthYear);
+  const [page, setPage] = useState(1);
+  const [debtorPage, setDebtorPage] = useState(1);
+  const ITEMS_PER_PAGE = 30;
 
   const { data: payments = [], isLoading: paymentsLoading } = usePayments();
   const { data: debtors = [], isLoading: debtorsLoading } = useDebtors();
@@ -128,6 +132,18 @@ export function PaymentsPage() {
       (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
     );
   }, [payments, filter, currentMonth]);
+
+  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
+  const paginatedPayments = filteredPayments.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
+  const debtorTotalPages = Math.ceil(debtors.length / ITEMS_PER_PAGE);
+  const paginatedDebtors = debtors.slice(
+    (debtorPage - 1) * ITEMS_PER_PAGE,
+    debtorPage * ITEMS_PER_PAGE
+  );
 
   const handleSubmitForm = (
     payload: PaymentCreatePayload | PaymentUpdatePayload,
@@ -322,15 +338,24 @@ export function PaymentsPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2.5">
-                  {filteredPayments.map((payment) => (
-                    <PaymentCard
-                      key={payment.id}
-                      payment={payment}
-                      onClick={() => setDetailPayment(payment)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="space-y-2.5">
+                    {paginatedPayments.map((payment) => (
+                      <PaymentCard
+                        key={payment.id}
+                        payment={payment}
+                        onClick={() => setDetailPayment(payment)}
+                      />
+                    ))}
+                  </div>
+                  <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    total={filteredPayments.length}
+                    perPage={ITEMS_PER_PAGE}
+                    onChange={setPage}
+                  />
+                </>
               )}
             </div>
           )}
@@ -368,7 +393,7 @@ export function PaymentsPage() {
                       Jami {debtors.length} nafar o'quvchida qarzdorlik mavjud
                     </p>
                   </div>
-                  {debtors.map((debtor) => (
+                  {paginatedDebtors.map((debtor) => (
                     <div
                       key={debtor.student_id}
                       className="flex items-center gap-3 px-4 py-3.5 bg-white rounded-2xl"
@@ -401,6 +426,13 @@ export function PaymentsPage() {
                       </div>
                     </div>
                   ))}
+                  <Pagination
+                    page={debtorPage}
+                    totalPages={debtorTotalPages}
+                    total={debtors.length}
+                    perPage={ITEMS_PER_PAGE}
+                    onChange={setDebtorPage}
+                  />
                 </>
               )}
             </div>

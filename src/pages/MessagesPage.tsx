@@ -12,6 +12,7 @@ import { useStudents } from '../hooks/useStudents';
 import { useMessages, useMessageTemplates, useSendMessage } from '../hooks/useMessages';
 import type { Message, Group, MessageTemplate } from '../types';
 import { cn } from '../utils/cn';
+import { Pagination } from '../components/ui/Pagination';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,8 @@ export function MessagesPage() {
   const [selectedTemplateKey, setSelectedTemplateKey] = useState<string | null>(null);
   const [detailMessage, setDetailMessage] = useState<Message | null>(null);
   const [sendResult, setSendResult] = useState<{ success: number; failed: number } | null>(null);
+  const [msgPage, setMsgPage] = useState(1);
+  const MSG_PER_PAGE = 30;
 
   const { data: messages = [], isLoading: messagesLoading } = useMessages();
   const { data: templatesRaw = [] } = useMessageTemplates();
@@ -93,6 +96,16 @@ export function MessagesPage() {
   const sendMutation = useSendMessage();
 
   const templates = templatesRaw.length > 0 ? templatesRaw : FALLBACK_TEMPLATES;
+
+  const sortedMessages = useMemo(
+    () => [...messages].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()),
+    [messages]
+  );
+  const msgTotalPages = Math.ceil(sortedMessages.length / MSG_PER_PAGE);
+  const paginatedMessages = sortedMessages.slice(
+    (msgPage - 1) * MSG_PER_PAGE,
+    msgPage * MSG_PER_PAGE
+  );
 
   const totalSelected = selectedStudents.size + selectedGroups.size;
 
@@ -212,16 +225,25 @@ export function MessagesPage() {
                   <p className="text-[13px] text-[#8e8e93] mt-1">Birinchi xabaringizni yuboring</p>
                 </div>
               ) : (
-                <div className="space-y-2.5">
-                  {messages.map((msg) => (
-                    <MessageCard
-                      key={msg.id}
-                      message={msg}
-                      groups={groups}
-                      onClick={() => setDetailMessage(msg)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="space-y-2.5">
+                    {paginatedMessages.map((msg) => (
+                      <MessageCard
+                        key={msg.id}
+                        message={msg}
+                        groups={groups}
+                        onClick={() => setDetailMessage(msg)}
+                      />
+                    ))}
+                  </div>
+                  <Pagination
+                    page={msgPage}
+                    totalPages={msgTotalPages}
+                    total={sortedMessages.length}
+                    perPage={MSG_PER_PAGE}
+                    onChange={setMsgPage}
+                  />
+                </>
               )}
             </>
           )}

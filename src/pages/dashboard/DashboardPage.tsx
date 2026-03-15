@@ -278,7 +278,7 @@ export function DashboardPage() {
             {/* Left + center: Today's lessons */}
             <div className="lg:col-span-2 space-y-8">
               <Card padding="lg" className="bg-white rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border-0 h-[400px] flex flex-col">
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
                     <AlertCircle className="w-5 h-5" />
                   </div>
@@ -292,124 +292,110 @@ export function DashboardPage() {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                   {groupsLoading ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-20 w-full rounded-2xl" />
-                      <Skeleton className="h-20 w-full rounded-2xl" />
-                      <Skeleton className="h-20 w-full rounded-2xl" />
+                    <div className="space-y-3">
+                      <Skeleton className="h-14 w-full rounded-xl" />
+                      <Skeleton className="h-14 w-full rounded-xl" />
+                      <Skeleton className="h-14 w-full rounded-xl" />
                     </div>
                   ) : todayLessons.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center">
-                      <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mb-4">
-                        <AlertCircle className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-base font-bold text-[#1F2937] mb-1">
-                        Bugun dars yo'q
-                      </h3>
-                      <p className="text-sm text-gray-400">
-                        Dam olish kuni maroqli o'tsin!
-                      </p>
-                    </div>
+                    <EmptyState
+                      title="Bugun dars yo'q"
+                      description="Dam olish kuni, maroqli o'tsin!"
+                    />
                   ) : (
-                    <ul className="space-y-4">
-                      {todayLessons.map((g) => (
-                        <li
+                    <div className="divide-y divide-gray-100">
+                      {todayLessons
+                        .sort((a, b) => (a.lesson_time ?? '').localeCompare(b.lesson_time ?? ''))
+                        .map((g) => (
+                        <div
                           key={g.id}
-                          className="group relative flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm hover:border-[#3B82F6]/30 hover:shadow-md transition-all duration-300 overflow-hidden"
+                          onClick={() => navigate(`/groups/${g.id}`)}
+                          className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-all"
                         >
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3B82F6] opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 text-center">
-                              <Badge size="sm" className="mb-1 text-[10px] w-full justify-center bg-blue-50 text-blue-600 border-none">
-                                KEYINGI DARS
-                              </Badge>
-                              <p className="text-xl font-bold text-[#1F2937]">{g.lesson_time}</p>
-                            </div>
-                            <div className="w-px h-12 bg-gray-100" />
-                            <div>
-                              <p className="text-lg font-bold text-[#1F2937] mb-0.5">{g.name}</p>
-                              <p className="text-xs text-gray-500 font-medium">
-                                {g.students_count ?? 0} {t('groups.studentsCount')}
-                              </p>
-                            </div>
+                          <div
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ background: g.color ?? '#3B82F6' }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-[#1F2937] truncate">{g.name}</p>
+                            <p className="text-xs text-gray-400">{g.students_count ?? 0} ta o'quvchi</p>
                           </div>
-
-                          <Link to={`/attendance`} className="ml-auto">
-                            <button
-                              type="button"
-                              className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#F0F4FF] hover:text-[#3B82F6] transition-colors"
-                            >
-                              <ChevronRight className="w-5 h-5" />
-                            </button>
-                          </Link>
-                        </li>
+                          <span className="text-sm font-bold text-blue-600 shrink-0">{g.lesson_time}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               </Card>
 
               {/* Recent payments */}
               <Card padding="lg" className="bg-white rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border-0">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-[#1F2937]">
                     So'nggi to'lovlar
                   </h2>
-                  <Link to="/payments" className="text-sm font-medium text-[#3B82F6] hover:text-blue-700 flex items-center gap-1 transition-colors">
-                    Barkchasini ko'rish
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
                 </div>
                 {paymentsLoading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-14 w-full rounded-2xl" />
-                    <Skeleton className="h-14 w-full rounded-2xl" />
-                    <Skeleton className="h-14 w-full rounded-2xl" />
+                  <div className="space-y-3">
+                    <Skeleton className="h-12 w-full rounded-xl" />
+                    <Skeleton className="h-12 w-full rounded-xl" />
+                    <Skeleton className="h-12 w-full rounded-xl" />
                   </div>
                 ) : paymentsError ? (
                   <p className="text-sm text-red-600">{t('common.error')}</p>
                 ) : recentPayments.length === 0 ? (
                   <EmptyState title="To'lovlar yo'q" description="Hozircha hech kim to'lov qilmagan" />
                 ) : (
-                  <ul className="space-y-3">
-                    {recentPayments.map((p) => (
-                      <li
-                        key={p.id}
-                        className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold">
-                            {(p.student?.first_name?.[0] || 'U').toUpperCase()}
+                  <>
+                    <div className="divide-y divide-gray-100">
+                      {recentPayments
+                        .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+                        .slice(0, 5)
+                        .map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex items-center justify-between py-3 border-b last:border-0"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold">
+                              {p.student?.first_name?.charAt(0) ?? '?'}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-[#1F2937]">
+                                {p.student?.first_name} {p.student?.last_name}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {p.group?.name ?? '—'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-[#1F2937] text-sm">
-                              {p.student
-                                ? `${p.student.first_name} ${p.student.last_name}`
-                                : p.student_id}
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-[#1F2937]">
+                              {formatCurrency(p.amount)}
                             </p>
-                            <p className="text-xs text-gray-500 font-medium">{formatDate(p.created_at || new Date().toISOString())}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              p.status === 'paid'
+                                ? 'bg-green-100 text-green-600'
+                                : p.status === 'partial'
+                                ? 'bg-yellow-100 text-yellow-600'
+                                : 'bg-red-100 text-red-600'
+                            }`}>
+                              {p.status === 'paid' ? "To'landi"
+                                : p.status === 'partial'
+                                ? 'Qisman' : 'Kutilmoqda'}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold text-[#1F2937]">
-                            {formatCurrency(p.amount)}
-                          </span>
-                          <Badge
-                            size="sm"
-                            variant={
-                              p.status === 'paid'
-                                ? 'success'
-                                : p.status === 'partial'
-                                  ? 'warning'
-                                  : 'neutral'
-                            }
-                            className="rounded-full px-3"
-                          >
-                            {t(`payments.${p.status}`)}
-                          </Badge>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => navigate('/payments')}
+                      className="text-blue-500 text-sm hover:underline mt-2"
+                    >
+                      Barchasini ko'rish →
+                    </button>
+                  </>
                 )}
               </Card>
             </div>
