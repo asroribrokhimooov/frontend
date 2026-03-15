@@ -11,13 +11,16 @@ export function AuthCallbackPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
+    const token = params.get('token') || hashParams.get('token');
 
     if (!token) {
       setError('Token topilmadi');
       return;
     }
 
+    // Token ni localStorage ga darhol saqlash (interceptor uchun)
+    localStorage.setItem('auth_token', token);
     setToken(token);
 
     api
