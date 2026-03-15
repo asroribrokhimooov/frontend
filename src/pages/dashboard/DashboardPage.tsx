@@ -624,12 +624,13 @@ export function DashboardPage() {
 function DebtorsModal({
   open,
   onClose,
-  debtors,
+  debtors: rawDebtors,
 }: {
   open: boolean;
   onClose: () => void;
   debtors: Debtor[];
 }) {
+  const debtors = Array.isArray(rawDebtors) ? rawDebtors : [];
   if (!open) return null;
 
   const totalDebt = debtors.reduce((s, d) => s + d.total_debt, 0);
