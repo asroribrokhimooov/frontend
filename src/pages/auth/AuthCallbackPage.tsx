@@ -20,7 +20,7 @@ export function AuthCallbackPage() {
     }
 
     // Token ni localStorage ga darhol saqlash (interceptor uchun)
-    localStorage.setItem('auth_token', token);
+    localStorage.setItem('token', token);
     setToken(token);
 
     api
