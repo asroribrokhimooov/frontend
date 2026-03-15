@@ -94,6 +94,7 @@ export function useArchiveGroup(id: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_GROUPS });
+      queryClient.invalidateQueries({ queryKey: ['archive'] });
       if (id) {
         queryClient.invalidateQueries({ queryKey: [...QUERY_KEY_GROUPS, id] });
       }

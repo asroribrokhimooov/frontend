@@ -117,6 +117,7 @@ export function useArchivePayment(id: string | undefined) {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_PAYMENTS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_DEBTORS });
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_REPORTS });
+      queryClient.invalidateQueries({ queryKey: ['archive'] });
     },
   });
 }
